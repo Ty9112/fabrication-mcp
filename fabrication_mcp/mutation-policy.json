@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "description": "Shared mutation policy — single source of truth for which tools and bridge endpoints mutate state, their risk tier, and their guard requirements. Read by the Python interceptor (advisory smart layer, fabrication_mcp/mutation_policy.py) and, as write endpoints land, by the C# bridge floor (hard boundary). Neither enforcer hardcodes rules. Private builds may extend this at boot via mutation_policy.register_tool().",
+  "risk_tiers": {
+    "safe": "Reversible or ephemeral; executes immediately, no confirmation.",
+    "guarded": "Mutates user-visible state; requires confirm=true on the call.",
+    "dangerous": "Irreversible or cascading; requires confirm=true and is rejected unless the policy explicitly enables it (reserved for future write tiers)."
+  },
+  "tools": {
+    "live_swap_job_item": {
+      "risk": "guarded",
+      "requires_confirm": true,
+      "supports_dry_run": true,
+      "save_domain": "drawing",
+      "reversible": true,
+      "note": "Modifies the active AutoCAD drawing. Reversible via live_undo_swap."
+    },
+    "live_undo_swap": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": true,
+      "save_domain": "drawing",
+      "reversible": false,
+      "note": "Reverses the last swap; is itself the undo operation."
+    },
+    "live_export_cache": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": true,
+      "save_domain": "exports",
+      "reversible": true,
+      "note": "Writes fresh CSV exports and reloads server caches; output is regenerable."
+    },
+    "refresh_cache": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": false,
+      "save_domain": "server_cache",
+      "reversible": true,
+      "note": "Clears in-memory caches; next query reloads from disk."
+    },
+    "switch_profile": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": false,
+      "save_domain": "server_context",
+      "reversible": true,
+      "note": "Changes the active data context; reversible by switching back."
+    },
+    "sync_profile_with_bridge": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": false,
+      "save_domain": "server_context",
+      "reversible": true,
+      "note": "May switch the active profile and triggers a bridge cache refresh."
+    },
+    "est_load_job": {
+      "risk": "safe",
+      "requires_confirm": false,
+      "supports_dry_run": true,
+      "save_domain": "est_db",
+      "reversible": true,
+      "note": "Writes the local estimates SQLite database; jobs are reloadable from their source export files."
+    }
+  },
+  "bridge_endpoints": {
+    "POST /api/cache/export": { "tool": "live_export_cache" },
+    "POST /api/job/items/{id}/swap": { "tool": "live_swap_job_item" },
+    "POST /api/job/items/undo": { "tool": "live_undo_swap" }
+  },
+  "defaults": {
+    "unlisted_bridge_post": "reject",
+    "unlisted_tool": "reject"
+  }
+}

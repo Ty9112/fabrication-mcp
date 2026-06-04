@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fabrication CADmep Console</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Top bar ──────────────────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <path d="M14 17.5h7M17.5 14v7"/>
+    </svg>
+    <span class="brand-name">Fabrication Console</span>
+    <span class="brand-version">v1.0</span>
+  </div>
+  <div id="bridge-status-bar" class="status-bar checking">
+    <span class="status-dot"></span> Connecting to bridge&hellip;
+  </div>
+</header>
+
+<!-- ── Layout ────────────────────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Sidebar nav -->
+  <nav class="sidebar" role="navigation" aria-label="Panels">
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn active" data-panel="products" aria-selected="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 7v6M7 10h6"/></svg>
+          Products
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-panel="services" aria-selected="false">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="14" height="12" rx="1"/><path d="M7 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M7 9h6M7 13h4"/></svg>
+          Services
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-panel="pricelists" aria-selected="false">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h12v12H4z"/><path d="M8 8h4M8 12h2M13 12l2 2M13 12l2-2"/></svg>
+          Price Lists
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-panel="estimate" aria-selected="false">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 3h10v14H5z"/><path d="M8 7h4M8 10h4M8 13h2"/><path d="M14 15l2 2 3-3" stroke-linecap="round"/></svg>
+          Cost Estimate
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-panel="est" aria-selected="false">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><ellipse cx="10" cy="10" rx="7" ry="5"/><path d="M3 10c0 2.8 3.1 5 7 5s7-2.2 7-5"/><path d="M10 5v10"/></svg>
+          EST Jobs
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Panel container -->
+  <main class="panels">
+
+    <!-- ── Panel 1: Product Search ─────────────────────────────────────── -->
+    <section id="panel-products" class="panel active" aria-label="Product Search">
+      <div class="panel-header">
+        <h1 class="panel-title">Product Search</h1>
+        <p class="panel-desc">Search your Fabrication database products. Results show description, size, manufacturer, and cost from your active price list.</p>
+      </div>
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5"/><path d="M13 13l3.5 3.5" stroke-linecap="round"/></svg>
+          <input id="product-search-input" type="search" class="search-input" placeholder="Search by description, size, material, spec&hellip;" autocomplete="off" aria-label="Product search">
+        </div>
+        <button id="product-search-btn" class="btn-primary">Search</button>
+        <button id="product-load-all-btn" class="btn-secondary">Load All</button>
+      </div>
+      <div id="product-results-meta" class="results-meta" aria-live="polite"></div>
+      <div id="product-grid-wrap" class="grid-wrap">
+        <table id="product-table" class="data-table" role="grid">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Description</th>
+              <th scope="col">Size</th>
+              <th scope="col">Material</th>
+              <th scope="col">Spec</th>
+              <th scope="col">Manufacturer</th>
+              <th scope="col" class="col-num">Cost</th>
+              <th scope="col" class="col-action"></th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody"></tbody>
+        </table>
+        <div id="product-empty" class="empty-state hidden">
+          <div class="empty-icon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="22" cy="22" r="14"/><path d="M32 32l10 10" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke-linecap="round"/></svg>
+          </div>
+          <p class="empty-title">No products found</p>
+          <p class="empty-sub">Try a different search term, or click <strong>Load All</strong> to browse your full catalog.</p>
+        </div>
+      </div>
+      <div id="product-offline-banner" class="offline-banner hidden">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4M5.2 14.8l1.4-1.4M13.4 6.6l1.4-1.4"/><circle cx="10" cy="10" r="3"/></svg>
+        Sample data shown — bridge offline. Start AutoCAD with FabricationSample loaded to connect to your live database.
+      </div>
+    </section>
+
+    <!-- ── Panel 2: Services ───────────────────────────────────────────── -->
+    <section id="panel-services" class="panel hidden" aria-label="Service Browser">
+      <div class="panel-header">
+        <h1 class="panel-title">Services</h1>
+        <p class="panel-desc">Browse the services defined in your Fabrication database. Click a service to inspect its template structure and catalog items.</p>
+      </div>
+      <div class="split-layout">
+        <div class="split-left">
+          <div class="split-toolbar">
+            <input id="svc-filter" type="search" class="search-input compact" placeholder="Filter services&hellip;" aria-label="Filter services">
+            <span id="svc-count-badge" class="count-badge">0</span>
+          </div>
+          <ul id="svc-list" class="item-list" role="listbox" aria-label="Services"></ul>
+          <div id="svc-list-empty" class="empty-state small hidden">
+            <p>No services loaded.</p>
+          </div>
+        </div>
+        <div class="split-right">
+          <div id="svc-detail" class="detail-pane">
+            <div class="detail-placeholder">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="2"/><path d="M16 18h16M16 24h12M16 30h8"/></svg>
+              <p>Select a service to inspect its template</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="svc-offline-banner" class="offline-banner hidden">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 7v4M10 13v.5"/></svg>
+        Sample data shown &mdash; bridge offline.
+      </div>
+    </section>
+
+    <!-- ── Panel 3: Price Lists ────────────────────────────────────────── -->
+    <section id="panel-pricelists" class="panel hidden" aria-label="Price Lists">
+      <div class="panel-header">
+        <h1 class="panel-title">Price Lists</h1>
+        <p class="panel-desc">Browse the supplier price lists configured in your database. Select a list to view its entries.</p>
+      </div>
+      <div class="split-layout">
+        <div class="split-left">
+          <div class="split-toolbar">
+            <span class="label-muted">Price Lists</span>
+            <span id="pl-count-badge" class="count-badge">0</span>
+          </div>
+          <ul id="pl-list" class="item-list" role="listbox" aria-label="Price lists"></ul>
+        </div>
+        <div class="split-right">
+          <div id="pl-detail">
+            <div class="detail-placeholder">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M12 8h24v32H12z"/><path d="M18 16h12M18 22h8M30 32l4 4M30 36l4-4"/></svg>
+              <p>Select a price list to view entries</p>
+            </div>
+          </div>
+          <div id="pl-entries-area" class="hidden">
+            <div class="entries-toolbar">
+              <input id="pl-entry-search" type="search" class="search-input compact" placeholder="Search entries&hellip;" aria-label="Search price entries">
+              <span id="pl-entry-count" class="count-badge">0</span>
+              <button id="pl-entry-load-btn" class="btn-secondary small">Load</button>
+            </div>
+            <div class="grid-wrap short">
+              <table class="data-table" role="grid">
+                <thead>
+                  <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Size</th>
+                    <th scope="col" class="col-num">List Price</th>
+                    <th scope="col" class="col-num">Multiplier</th>
+                    <th scope="col" class="col-num">Net Price</th>
+                  </tr>
+                </thead>
+                <tbody id="pl-entry-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="pl-offline-banner" class="offline-banner hidden">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 7v4M10 13v.5"/></svg>
+        Sample data shown &mdash; bridge offline.
+      </div>
+    </section>
+
+    <!-- ── Panel 4: Cost Estimate ──────────────────────────────────────── -->
+    <section id="panel-estimate" class="panel hidden" aria-label="Cost Estimate">
+      <div class="panel-header">
+        <h1 class="panel-title">Cost Estimate</h1>
+        <p class="panel-desc">Select products from your database and apply your price-list multipliers to generate a quick material cost estimate.</p>
+      </div>
+      <div class="estimate-layout">
+        <div class="estimate-left">
+          <div class="card">
+            <div class="card-head">Pick Products</div>
+            <div class="search-row compact">
+              <input id="est-search-input" type="search" class="search-input" placeholder="Search products to add&hellip;" aria-label="Search products for estimate">
+              <button id="est-search-btn" class="btn-secondary small">Search</button>
+            </div>
+            <div id="est-pick-results" class="pick-list" role="listbox" aria-label="Search results for estimate" aria-multiselectable="true"></div>
+          </div>
+        </div>
+        <div class="estimate-right">
+          <div class="card">
+            <div class="card-head">
+              Estimate Basket
+              <button id="est-clear-btn" class="btn-ghost small" style="margin-left:auto">Clear</button>
+            </div>
+            <table class="data-table" role="grid" aria-label="Estimate basket">
+              <thead>
+                <tr>
+                  <th scope="col">Description</th>
+                  <th scope="col" class="col-num">Qty</th>
+                  <th scope="col" class="col-num">Unit Cost</th>
+                  <th scope="col" class="col-num">Multiplier</th>
+                  <th scope="col" class="col-num">Line Total</th>
+                  <th scope="col" class="col-action"></th>
+                </tr>
+              </thead>
+              <tbody id="est-basket-tbody"></tbody>
+            </table>
+            <div id="est-basket-empty" class="empty-state small">
+              <p>Search and click products to add them to the estimate.</p>
+            </div>
+            <div id="est-totals" class="totals-bar hidden">
+              <span class="totals-label">Total Material Cost</span>
+              <span id="est-total-value" class="totals-value">$0.00</span>
+            </div>
+            <div id="est-run-row" class="run-row hidden">
+              <button id="est-run-btn" class="btn-primary">Run Estimate</button>
+              <span class="label-muted">Applies your price-list multipliers</span>
+            </div>
+          </div>
+          <div id="est-result-card" class="card hidden">
+            <div class="card-head">Estimate Result</div>
+            <div id="est-result-body"></div>
+          </div>
+        </div>
+      </div>
+      <div id="est-offline-banner" class="offline-banner hidden">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 7v4M10 13v.5"/></svg>
+        Bridge offline &mdash; estimates use sample data prices.
+      </div>
+    </section>
+
+    <!-- ── Panel 5: EST Jobs ───────────────────────────────────────────── -->
+    <section id="panel-est" class="panel hidden" aria-label="EST Jobs">
+      <div class="panel-header">
+        <h1 class="panel-title">EST Jobs</h1>
+        <p class="panel-desc">View estimate jobs loaded into the EST pipeline SQLite database via the MCP tools (<code>est_list_jobs</code>, <code>est_job_summary</code>).</p>
+      </div>
+      <div id="est-mcp-offline" class="connect-state">
+        <div class="connect-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><ellipse cx="24" cy="24" rx="16" ry="10"/><path d="M8 24c0 5.5 7.2 10 16 10s16-4.5 16-10"/><path d="M24 14v20"/></svg>
+        </div>
+        <h2 class="connect-title">EST MCP Endpoint Not Detected</h2>
+        <p class="connect-body">This panel demonstrates the EST-jobs UI pattern. Browsers cannot speak MCP's stdio/SSE transports directly, so the panel probes for a plain JSON-RPC-over-HTTP endpoint at <code>localhost:8005/mcp/v1</code> — a thin proxy in front of the server's <code>tools/call</code>. With the standard setup, query EST jobs from your MCP client instead (<code>est_list_jobs</code>, <code>est_job_summary</code>).</p>
+        <div class="connect-steps">
+          <div class="step"><span class="step-num">1</span>Expose <code>tools/call</code> via an HTTP JSON-RPC proxy on port 8005 (client stub: <code>js/bridge-client.js → mcpCall()</code>)</div>
+          <div class="step"><span class="step-num">2</span>Reload this page or hit Retry once the endpoint answers</div>
+          <div class="step"><span class="step-num">3</span>Use <code>est_load_job</code> to load an estimate.txt file into the database</div>
+        </div>
+        <button id="est-retry-btn" class="btn-primary">Retry Connection</button>
+      </div>
+      <div id="est-jobs-area" class="hidden">
+        <div class="est-toolbar">
+          <button id="est-refresh-btn" class="btn-secondary small">Refresh</button>
+          <span id="est-mcp-badge" class="badge badge-ok">MCP Connected</span>
+        </div>
+        <div class="split-layout tall">
+          <div class="split-left">
+            <div class="split-toolbar">
+              <span class="label-muted">Loaded Jobs</span>
+              <span id="est-job-count" class="count-badge">0</span>
+            </div>
+            <ul id="est-job-list" class="item-list" role="listbox" aria-label="EST jobs"></ul>
+          </div>
+          <div class="split-right">
+            <div id="est-job-detail">
+              <div class="detail-placeholder">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><ellipse cx="24" cy="24" rx="16" ry="10"/><path d="M8 24c0 5.5 7.2 10 16 10s16-4.5 16-10"/><path d="M24 14v20"/></svg>
+                <p>Select a job to view its service summary</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Scripts ───────────────────────────────────────────────────────────── -->
+<script src="js/bridge-client.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
