@@ -17,11 +17,11 @@ import fabrication_mcp.bridge as _bridge_mod
 
 # Fire the open-core load seam HERE, from the entry point, now that fabrication_mcp
 # has fully imported. It is deliberately NOT called inside fabrication_mcp/__init__.py
-# (see the note there): doing so fires `import harris` mid-import of fabrication_mcp,
-# and harris.tools.* import back from fabrication_mcp — re-entering a half-built package.
-# In public builds (no harris/) this is a no-op: find_spec("harris") is None → False.
-from fabrication_mcp import _load_harris_extensions  # noqa: E402
-_load_harris_extensions()
+# (see the note there): doing so fires `import fab_ext` mid-import of fabrication_mcp,
+# and fab_ext.tools.* import back from fabrication_mcp — re-entering a half-built package.
+# In public builds (no extension package) this is a no-op: find_spec("fab_ext") is None → False.
+from fabrication_mcp import _load_extensions  # noqa: E402
+_load_extensions()
 
 _LOOKUP_MODULES = [
     "fabrication_mcp.config", "fabrication_mcp.loaders",

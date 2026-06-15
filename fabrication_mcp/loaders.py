@@ -53,9 +53,9 @@ def _load_product_info(
 
 def _load_mapped_output(directory: Path = None) -> list[dict]:
     directory = directory or MAPPING_TOOLS_DIR
-    path = _latest_csv(directory, "All_Mapped_Deduped_*.csv")
+    path = _latest_csv(directory, "mapped_products_*.csv")
     if not path:
-        log.warning(f"No All_Mapped_Deduped CSV found")
+        log.warning(f"No mapped_products CSV found")
         return []
     log.info(f"Loading mapped output: {path.name}")
     rows = []

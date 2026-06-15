@@ -16,7 +16,7 @@ from fabrication_mcp.profiles import get_active_profile_name
 @mcp.tool()
 def get_diagnostics() -> dict:
     """
-    Returns a comprehensive diagnostics report for the fabrication-cadmep MCP server.
+    Returns a comprehensive diagnostics report for the fabrication-mcp MCP server.
 
     Includes: Python version, FastMCP version, active profile info, bridge connectivity,
     EST database status, cache load times, and profile count.

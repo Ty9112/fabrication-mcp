@@ -11,9 +11,9 @@ from estimate.json. This exporter includes only those actively used fields,
 reducing file size significantly compared to the full 141-column dump.
 
 Usage:
-    python est/export.py --job "LCK 064" --output path/to/model.estimate.json
-    python est/export.py --job "LCK 064"  # prints to stdout
-    python est/export.py --db path/to/estimates.db --job "LCK 064" --output out.json
+    python est/export.py --job "EXAMPLE_JOB_001" --output path/to/model.estimate.json
+    python est/export.py --job "EXAMPLE_JOB_001"  # prints to stdout
+    python est/export.py --db path/to/estimates.db --job "EXAMPLE_JOB_001" --output out.json
 
 Programmatic:
     from est.export import export_estimate_json
@@ -165,7 +165,7 @@ def export_estimate_json(
 
     Args:
         db_path: Path to the SQLite estimates database.
-        job_file_name: The JobFileName to export (e.g., "LCK 064").
+        job_file_name: The JobFileName to export (e.g., "EXAMPLE_JOB_001").
 
     Returns:
         Dict keyed by GlobalId (items/TFC) or "ANC::{job}::{index}" (ancillaries),
@@ -211,7 +211,7 @@ def export_estimate_json(
                 row[viewer_field] = _str(item.get(sqlite_col))
             row["JobName"] = _str(job_name)
 
-            # ── WAM shop weld labor reallocation ──────────────────────────
+            # ── shop weld labor reallocation ──────────────────────────────
             # Only SHOP WELD joints get labor reallocated from field to fab.
             # ProPress, threaded, solvent, soldered, brazed, ACR, bolt sets,
             # gaskets, and other field connections stay as-is.
@@ -228,11 +228,9 @@ def export_estimate_json(
             # Spool total: TotalHours = sum(FabTime) + sum(InstallTime)
             #              The negatives cancel the double-count.
             #
-            # Shop weld families in the source database (example IDs):
-            #   MDSK_JOINT_000043 -- Carbon Steel Shop Weld - Standard
-            #   MDSK_JOINT_000047 -- Stainless Steel 316L Orbital Weld
-            #   MDSK_JOINT_000049 -- Stainless Steel 304L Shop Weld - Standard
-            #   MDSK_JOINT_000128 -- Stainless Steel 304L Shop Weld - Schedule 10S
+            # Shop weld families are identified by a "_JOINT_" database ID plus a
+            # description containing "shop weld" / "orbital weld" (example shape):
+            #   VENDOR_JOINT_000001 -- Shop Weld - Standard
             #
             # TODO: Replace hardcoded string matching with user-configurable
             # shop weld classification. See est/backlog.md "Configurable Shop
@@ -372,7 +370,7 @@ def main():
     )
     parser.add_argument(
         "--job", required=True,
-        help="JobFileName to export (e.g., 'LCK 064')",
+        help="JobFileName to export (e.g., 'EXAMPLE_JOB_001')",
     )
     parser.add_argument(
         "--db", default=str(DEFAULT_DB_PATH),

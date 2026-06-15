@@ -21,11 +21,11 @@ MAPPING_TOOLS_DIR = DATA_ROOT / "mappings"
 PRICING_DIR = DATA_ROOT / "pricing"
 
 # Proprietary catalog config (snapshot CSV, per-manufacturer dir, SQLite DB) moved to the
-# private harris/ package (open-core split): the public build has no proprietary catalog
+# optional extension package (open-core split): the public build has no proprietary catalog
 # and runs CSV-only. A private build installs a catalog loader via the cache hook at boot
 # (see fabrication_mcp.cache._external_catalog_loader).
 
-# Non-CSV product-source config moved to the private harris/ package (open-core split):
+# Non-CSV product-source config moved to the optional extension package (open-core split):
 # the public build is CSV-only. A private build installs an external product loader via
 # the cache hook at boot (see fabrication_mcp.cache._external_product_loader).
 

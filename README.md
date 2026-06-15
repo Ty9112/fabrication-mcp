@@ -1,7 +1,8 @@
 # fabrication-mcp
 
 A FastMCP 3 server exposing an Autodesk Fabrication CADmep database as **44 queryable
-MCP tools** across four modes: CSV exports, live bridge, estimate sidecars, and EST pipeline.
+MCP tools** across four modes — CSV exports, live bridge, estimate sidecars, and EST
+pipeline — plus a static browser console with a searchable MCP Tools Explorer.
 
 ## Modes
 
@@ -9,7 +10,7 @@ MCP tools** across four modes: CSV exports, live bridge, estimate sidecars, and 
 |------|----------|-------------|
 | CSV | Export files only | Reads ProductInfo CSV exports from the Fabrication database |
 | Live bridge | AutoCAD 2024 + bridge plugin | Real-time database access via HTTP bridge at localhost:5050 |
-| Estimate | Hub manifest models | Cost analysis from estimate.json sidecars |
+| Estimate | Manifest models | Cost analysis from estimate.json sidecars |
 | EST pipeline | SQLite | ETL for ESTmep estimate.txt exports → queryable database |
 
 ## Data Sources
@@ -19,9 +20,7 @@ after filtering N/A placeholder rows). Paths are configurable via environment va
 - `FABRICATION_DATA_ROOT` — root for CSV exports
 - `FABRICATION_EXPORTS_DIR` — directory scanned by `est_list_exports` for estimate files
 
-Multiple database profiles are supported via a hub manifest file. Each profile has its own
-data paths. A private extension package may add proprietary pricing and mapping tools on top
-of this public core.
+Multiple database profiles are supported via a manifest file, each with its own data paths.
 
 ## Tools (44 total)
 
@@ -60,7 +59,7 @@ Real-time access to the Fabrication database via an HTTP bridge plugin running i
 
 | Tool | Description |
 |------|-------------|
-| `get_estimate_items` | Query estimate records from hub model sidecars |
+| `get_estimate_items` | Query estimate records from model sidecars |
 | `get_estimate_summary` | Aggregate cost/labor summaries by service, section, material, etc. |
 
 ### EST pipeline (9 tools)
@@ -108,6 +107,18 @@ python server.py             # Run standalone
 ```
 
 Or via Claude Code MCP integration (auto-started from `~/.claude/settings.json`).
+
+## Console
+
+A static browser console ships in `public_console/` — a read-only data browser over the
+server's tools plus an **MCP Tools Explorer** that lists every tool with its input schema.
+One process serves both the UI and a JSON bridge to the tools:
+
+```bash
+python public_console/proxy.py        # console + /rpc on http://127.0.0.1:8110
+```
+
+No build step and no CORS — the page calls `fetch()` JSON against its own origin.
 
 ## Tests
 

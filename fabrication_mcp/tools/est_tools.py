@@ -78,16 +78,21 @@ atexit.register(_est_db_cleanup)
 
 _EXPORTS_DIR = Path(os.environ.get("FABRICATION_EXPORTS_DIR", str(DATA_ROOT / "exports")))
 
+# Optional prefix some deployments prepend to export file names. When set, a
+# prefixed filename variant is checked as a fallback alongside the bare stem.
+# Empty by default (no fallback variant added).
+_FILE_PREFIX = os.environ.get("EST_FILE_PREFIX", "")
+
 
 def _est_resolve_companions(file_stem: str) -> dict:
     """Resolve ancillaries and TFC companion files for a given file stem.
 
-    Checks both the exact stem and a WET2_0_ prefixed variant.
+    Checks both the exact stem and, when EST_FILE_PREFIX is set, a prefixed variant.
     Prefers hub_ancillaries (has parent GUID) over legacy ancillaries.
     """
     stems = [file_stem]
-    if not file_stem.startswith("WET2_0_"):
-        stems.append(f"WET2_0_{file_stem}")
+    if _FILE_PREFIX and not file_stem.startswith(_FILE_PREFIX):
+        stems.append(f"{_FILE_PREFIX}{file_stem}")
 
     hub_anc = None
     legacy_anc = None
@@ -114,8 +119,8 @@ def _est_resolve_companions(file_stem: str) -> dict:
 def _est_resolve_exports(job_file_name: str) -> dict:
     """Resolve the estimate + companion files for a job in PROJECTS/Exports."""
     estimate_path = _EXPORTS_DIR / f"{job_file_name}.txt"
-    if not estimate_path.exists():
-        estimate_path = _EXPORTS_DIR / f"WET2_0_{job_file_name}.txt"
+    if not estimate_path.exists() and _FILE_PREFIX and not job_file_name.startswith(_FILE_PREFIX):
+        estimate_path = _EXPORTS_DIR / f"{_FILE_PREFIX}{job_file_name}.txt"
 
     companions = _est_resolve_companions(job_file_name)
     return {
@@ -337,7 +342,7 @@ def est_query(sql: str, job_file_name: str = "") -> dict:
 @mcp.tool()
 def est_status_timeline(job_file_name: str = "") -> dict:
     """
-    Query item status history for cross-platform tracking (CMiC/Stratus integration).
+    Query item status history for cross-platform status tracking.
 
     Shows each item's current status, previous statuses, and their dates -- the full
     status progression chain. Only items with at least one status value are returned.
@@ -365,7 +370,7 @@ def est_spool_analysis(
     spool: str = "",
 ) -> dict:
     """
-    Analyze cost and labor data aggregated by spool -- bridges to Stratus spool tracking.
+    Analyze cost and labor data aggregated by spool.
 
     Shows per-spool: item_count, total_material, total_fab_cost, total_field_cost,
     total_weight, fab_hours, install_hours, and status breakdown.

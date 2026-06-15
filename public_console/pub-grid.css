@@ -1,0 +1,767 @@
+/* ============================================================================
+ * pub-grid.css — Tabulator 6.3.1 skin for the Fabrication MCP Console
+ * ---------------------------------------------------------------------------
+ * Tokens: all --pub-* from theme-tokens.css. Both light (default) and dark
+ * (html[data-theme="dark"]) themes handled here.
+ *
+ * Method: vendor kill-list. tabulator.min.css hardcodes light backgrounds on
+ * every interactive state. Each rule below copies or exceeds vendor specificity
+ * to ensure the pub-* token wins on both themes.
+ *
+ * Density target: 13px base, 28px row height — matches existing data-table rows.
+ * Sticky header via height on the Tabulator wrapper (height:'100%' or explicit px).
+ * ============================================================================*/
+
+/* ── Core wrapper ─────────────────────────────────────────────────────────── */
+.tabulator {
+  background: var(--pub-surface);
+  border: 1px solid var(--pub-border);
+  border-radius: 0;
+  font-family: var(--pub-font);
+  font-size: var(--pub-text-sm);  /* 12px — dense data */
+  color: var(--pub-text);
+}
+
+/* square corners everywhere — vendor has border-radius on many sub-elements */
+.tabulator,
+.tabulator * {
+  border-radius: 0 !important;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+/*
+ * Vendor paints .tabulator .tabulator-header .tabulator-col at (0,3,0)
+ * with background:#e6e6e6. We must match or exceed that specificity.
+ */
+.tabulator .tabulator-header {
+  background: var(--pub-surface-2);
+  border-bottom: 1px solid var(--pub-border-strong);
+  color: var(--pub-text);
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  background: var(--pub-surface-2);
+  border-right: 1px solid var(--pub-border);
+  border-bottom: none;
+}
+
+.tabulator .tabulator-col .tabulator-col-title {
+  font-size: var(--pub-text-xs);    /* 11px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pub-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sortable header hover */
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {
+  background: var(--pub-accent-wash);
+  color: var(--pub-accent);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover
+  .tabulator-col-title {
+  color: var(--pub-accent);
+}
+
+/* Sort arrows — use accent color */
+.tabulator .tabulator-col .tabulator-col-sorter .tabulator-arrow {
+  border-bottom-color: var(--pub-text-dim);
+  border-top-color: var(--pub-text-dim);
+}
+
+/* Active sort column header tint */
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="ascending"],
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="descending"] {
+  background: var(--pub-accent-wash);
+}
+
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="ascending"] .tabulator-col-title,
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="descending"] .tabulator-col-title {
+  color: var(--pub-accent);
+}
+
+/* Active sort arrow */
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="ascending"] .tabulator-arrow {
+  border-bottom-color: var(--pub-accent) !important;
+}
+
+.tabulator .tabulator-col.tabulator-sortable[aria-sort="descending"] .tabulator-arrow {
+  border-top-color: var(--pub-accent) !important;
+}
+
+/* Moving column ghost */
+.tabulator .tabulator-header .tabulator-col.tabulator-moving {
+  background: var(--pub-accent-dim);
+}
+
+/* ── Header filter inputs ─────────────────────────────────────────────────── */
+/*
+ * Vendor places filter inputs inside .tabulator-header-filter — we need
+ * them to look like the existing .search-input.compact style.
+ */
+.tabulator .tabulator-header .tabulator-header-filter {
+  padding: 2px 4px 3px;
+}
+
+.tabulator .tabulator-header .tabulator-header-filter input,
+.tabulator .tabulator-header .tabulator-header-filter select {
+  width: 100%;
+  font-family: var(--pub-font);
+  font-size: var(--pub-text-xs);   /* 11px */
+  color: var(--pub-text);
+  background: var(--pub-input-bg);
+  border: 1px solid var(--pub-border);
+  border-radius: 0;
+  padding: 2px 5px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.tabulator .tabulator-header .tabulator-header-filter input:focus,
+.tabulator .tabulator-header .tabulator-header-filter select:focus {
+  border-color: var(--pub-accent);
+  box-shadow: 0 0 0 2px var(--pub-accent-dim);
+}
+
+/* list filter dropdown (headerFilter:'list') */
+.tabulator-popup-container {
+  background: var(--pub-surface);
+  border: 1px solid var(--pub-border-strong);
+  border-radius: 0 !important;
+  box-shadow: var(--pub-shadow-md);
+  font-family: var(--pub-font);
+  font-size: var(--pub-text-sm);
+  color: var(--pub-text);
+  z-index: 500;
+}
+
+.tabulator-popup-container .tabulator-list-field-item {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.tabulator-popup-container .tabulator-list-field-item:hover {
+  background: var(--pub-accent-wash);
+  color: var(--pub-accent);
+}
+
+/* ── Table body ───────────────────────────────────────────────────────────── */
+
+/* Kill vendor's white table canvas */
+.tabulator .tabulator-tableholder {
+  background: var(--pub-surface);
+}
+
+.tabulator .tabulator-tableholder .tabulator-table {
+  background: var(--pub-surface);
+  color: var(--pub-text);
+}
+
+/* Row — vendor ships .tabulator-row{color:#333} which fails on dark bg */
+.tabulator .tabulator-row {
+  min-height: 28px;
+  background: var(--pub-surface);
+  color: var(--pub-text);
+  border-bottom: 1px solid var(--pub-border);
+}
+
+/* Even/odd banding (light) */
+.tabulator .tabulator-row:nth-child(even) {
+  background: var(--pub-surface-2);
+}
+
+/* Cells */
+.tabulator .tabulator-row .tabulator-cell {
+  padding: 5px 7px;
+  border-right: 1px solid var(--pub-border);
+  vertical-align: middle;
+}
+
+/* Numeric-aligned cells */
+.tabulator .tabulator-cell.pub-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--pub-font-mono);
+}
+
+/* Cost value highlight (same as .cell-cost in old style.css) */
+.tabulator .tabulator-cell.pub-cost-val {
+  color: var(--pub-ok);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ID cell pill (same as .cell-id) */
+.tabulator .tabulator-cell.pub-id-cell {
+  font-family: var(--pub-font-mono);
+  font-size: var(--pub-text-xs);
+}
+
+/* ── Interactive row states (vendor kill-list) ────────────────────────────── */
+.tabulator .tabulator-row.tabulator-selectable:hover {
+  background: var(--pub-accent-wash);
+  color: var(--pub-text);
+}
+
+.tabulator .tabulator-row.tabulator-selected {
+  background: var(--pub-accent-dim);
+  color: var(--pub-text);
+}
+
+.tabulator .tabulator-row.tabulator-row-moving {
+  background: var(--pub-surface-3);
+}
+
+/* row-header (frozen row handle col) */
+.tabulator .tabulator-row .tabulator-cell.tabulator-row-header {
+  background: var(--pub-surface-2);
+  color: var(--pub-text-muted);
+}
+
+/* editing cell */
+.tabulator .tabulator-cell.tabulator-editing {
+  background: var(--pub-input-bg);
+  color: var(--pub-text);
+}
+
+.tabulator .tabulator-cell.tabulator-editing input {
+  background: var(--pub-input-bg);
+  color: var(--pub-text);
+  border: 1px solid var(--pub-accent);
+  font-family: var(--pub-font);
+  font-size: var(--pub-text-sm);
+}
+
+/* ── Column calc / footer row ─────────────────────────────────────────────── */
+/*
+ * Vendor paints .tabulator-footer and .tabulator-calcs-holder with light-gray
+ * at high specificity — kills visibility on dark. Both the holder AND the
+ * row must be forced.
+ */
+.tabulator .tabulator-footer {
+  background: var(--pub-surface-2) !important;
+  border-top: 2px solid var(--pub-border-strong);
+  padding: 0;
+}
+
+.tabulator .tabulator-footer .tabulator-calcs-holder,
+.tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row,
+.tabulator .tabulator-row.tabulator-calcs {
+  background: var(--pub-surface-2) !important;
+  border-top: 1px solid var(--pub-border-strong);
+  border-bottom: none;
+}
+
+.tabulator .tabulator-row.tabulator-calcs .tabulator-cell {
+  color: var(--pub-text-muted) !important;
+  font-weight: 700;
+  font-size: var(--pub-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: transparent !important;
+  border-right-color: var(--pub-border);
+}
+
+/* The "TOTAL" label cell in calcs row — quieter than the values */
+.tabulator .tabulator-row.tabulator-calcs .tabulator-cell.pub-calc-label {
+  color: var(--pub-text-dim) !important;
+}
+
+/* calc values in the money column — use accent for emphasis */
+.tabulator .tabulator-row.tabulator-calcs .tabulator-cell.pub-num {
+  color: var(--pub-accent) !important;
+  text-align: right;
+}
+
+/* ── Context menu ─────────────────────────────────────────────────────────── */
+.tabulator-menu {
+  background: var(--pub-surface);
+  border: 1px solid var(--pub-border-strong);
+  border-radius: 0 !important;
+  box-shadow: var(--pub-shadow-md);
+  font-size: var(--pub-text-sm);
+  padding: 0;
+}
+
+.tabulator-menu .tabulator-menu-item {
+  padding: 7px 14px;
+  color: var(--pub-text);
+  cursor: pointer;
+}
+
+.tabulator-menu .tabulator-menu-item:hover {
+  background: var(--pub-accent-wash);
+  color: var(--pub-accent);
+}
+
+.tabulator-menu .tabulator-menu-separator {
+  border-top: 1px solid var(--pub-border);
+}
+
+/* ── Alert / placeholder ──────────────────────────────────────────────────── */
+.tabulator .tabulator-alert .tabulator-alert-msg {
+  background: var(--pub-surface-2);
+  color: var(--pub-text);
+  border: 1px solid var(--pub-border);
+  padding: 20px;
+  font-size: var(--pub-text-sm);
+}
+
+/* ── Scrollbars (match existing thin scrollbar style) ────────────────────── */
+.tabulator .tabulator-tableholder::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.tabulator .tabulator-tableholder::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabulator .tabulator-tableholder::-webkit-scrollbar-thumb {
+  background: var(--pub-border-strong);
+}
+
+.tabulator .tabulator-tableholder::-webkit-scrollbar-thumb:hover {
+  background: var(--pub-text-dim);
+}
+
+.tabulator .tabulator-tableholder {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pub-border-strong) transparent;
+}
+
+/* ── ACI chip (status color swatch) — safe DOM-built, not innerHTML ──────── */
+.aci-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--pub-text-sm);
+}
+
+.aci-swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--pub-border-strong);
+  flex-shrink: 0;
+}
+
+/* ── Dark theme overrides ─────────────────────────────────────────────────── */
+html[data-theme="dark"] .tabulator {
+  background: var(--pub-surface);
+  border-color: var(--pub-border);
+  color: var(--pub-text);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-header {
+  background: var(--pub-surface-2);
+  border-bottom-color: var(--pub-border-strong);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-header .tabulator-col {
+  background: var(--pub-surface-2);
+  border-right-color: var(--pub-border);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-tableholder {
+  background: var(--pub-surface);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-tableholder .tabulator-table {
+  background: var(--pub-surface);
+  color: var(--pub-text);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-row {
+  background: var(--pub-surface);
+  color: var(--pub-text);
+  border-bottom-color: var(--pub-border);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-row.tabulator-selectable:hover {
+  background: var(--pub-accent-wash);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-row.tabulator-selected {
+  background: var(--pub-accent-dim);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-footer {
+  background: var(--pub-surface-3) !important;
+  border-top-color: var(--pub-border-strong);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-footer .tabulator-calcs-holder,
+html[data-theme="dark"] .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row,
+html[data-theme="dark"] .tabulator .tabulator-row.tabulator-calcs {
+  background: var(--pub-surface-3) !important;
+}
+
+html[data-theme="dark"] .tabulator .tabulator-row.tabulator-calcs .tabulator-cell {
+  border-right-color: var(--pub-border) !important;
+}
+
+html[data-theme="dark"] .tabulator .tabulator-header .tabulator-header-filter input,
+html[data-theme="dark"] .tabulator .tabulator-header .tabulator-header-filter select {
+  background: var(--pub-surface-3);
+  border-color: var(--pub-border);
+  color: var(--pub-text);
+}
+
+html[data-theme="dark"] .tabulator-popup-container {
+  background: var(--pub-surface-2);
+  border-color: var(--pub-border-strong);
+  color: var(--pub-text);
+}
+
+html[data-theme="dark"] .tabulator-menu {
+  background: var(--pub-surface-2);
+  border-color: var(--pub-border-strong);
+}
+
+html[data-theme="dark"] .tabulator-menu .tabulator-menu-item {
+  color: var(--pub-text);
+}
+
+html[data-theme="dark"] .tabulator .tabulator-alert .tabulator-alert-msg {
+  background: var(--pub-surface-2);
+  color: var(--pub-text);
+  border-color: var(--pub-border);
+}
+
+/* ── Responsive: full-bleed grid in entries-fill panels ──────────────────── */
+/*
+ * panels with class .entries-fill use position:absolute layout. Tabulator
+ * inside must fill that container. Set height on the wrapper div, not the
+ * Tabulator element directly (it derives height from its parent).
+ */
+.entries-fill .tabulator {
+  height: 100%;
+}
+
+/* grid-wrap fill — matches the existing .grid-wrap.fill pattern */
+.grid-wrap.fill .tabulator {
+  height: 100%;
+}
+
+/* Products grid: explicit viewport-derived height. Its wrap is a PLAIN
+   .grid-wrap (no height) — and Tabulator inside an indeterminate-height
+   container silently disables virtualization and renders EVERY row as real
+   DOM (10k rows ≈ 100s stall, blocked main thread). A resolved height turns
+   the virtual DOM back on. Same idiom as .split-layout's calc heights. */
+#product-grid-wrap {
+  height: calc(100vh - var(--pub-topbar-h) - 175px);
+  min-height: 320px;
+}
+
+/* ── Detail drawer ──────────────────────────────────────────────────
+   Right slide-over for record detail (products first; reusable by any
+   panel). Pure --pub-* tokens — both themes resolve through them. */
+.pub-drawer {
+  position: fixed;
+  top: var(--pub-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 90vw;
+  background: var(--pub-surface);
+  border-left: 1px solid var(--pub-border-strong);
+  box-shadow: var(--pub-shadow-lg);
+  transform: translateX(102%);
+  transition: transform var(--pub-duration-base) var(--pub-ease-out);
+  display: flex;
+  flex-direction: column;
+  z-index: 80;
+}
+.pub-drawer.open { transform: translateX(0); }
+
+.pub-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: var(--pub-space-2);
+  padding: var(--pub-space-3) var(--pub-space-4);
+  border-bottom: 1px solid var(--pub-border);
+  flex-shrink: 0;
+}
+.pub-drawer-title {
+  font-size: var(--pub-text-md);
+  font-weight: 600;
+  color: var(--pub-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pub-drawer-close {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--pub-radius-sm);
+  color: var(--pub-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: var(--pub-text-md);
+  line-height: 1;
+}
+.pub-drawer-close:hover {
+  color: var(--pub-text);
+  border-color: var(--pub-border);
+  background: var(--pub-surface-2);
+}
+
+.pub-drawer-body {
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: var(--pub-space-5);
+}
+
+.pub-drawer-img {
+  display: flex;
+  justify-content: center;
+  padding: var(--pub-space-4);
+  border-bottom: 1px solid var(--pub-border);
+  background: var(--pub-surface-2);
+}
+.pub-drawer-img img {
+  max-width: 96px;
+  max-height: 96px;
+  object-fit: contain;
+}
+
+.pub-detail-section { padding: var(--pub-space-3) var(--pub-space-4) 0; }
+.pub-detail-section > h3 {
+  font-size: var(--pub-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pub-text-muted);
+  margin: 0 0 var(--pub-space-2);
+  padding-bottom: var(--pub-space-1);
+  border-bottom: 1px solid var(--pub-border);
+}
+.pub-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pub-space-3);
+  padding: 3px 0;
+  font-size: var(--pub-text-sm);
+}
+.pub-detail-row .label { color: var(--pub-text-muted); flex-shrink: 0; }
+.pub-detail-row .value {
+  color: var(--pub-text);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pub-detail-row .value.mono {
+  font-family: var(--pub-font-mono);
+  font-size: var(--pub-text-xs);
+  color: var(--pub-accent);
+}
+
+/* ── Service button tree ────────────────────────────────────────────
+   Template hierarchy: summary line → tab bar → button PNG grid.
+   Mirrors the reference console's service browser flow in --pub-* skin. */
+.pub-tree-summary {
+  font-size: var(--pub-text-xs);
+  color: var(--pub-text-muted);
+  margin: var(--pub-space-2) 0 var(--pub-space-3);
+}
+.pub-tree-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pub-space-1);
+  border-bottom: 1px solid var(--pub-border);
+  margin-bottom: var(--pub-space-3);
+}
+.pub-tree-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--pub-text-muted);
+  cursor: pointer;
+  font-size: var(--pub-text-sm);
+  font-family: inherit;
+  padding: 6px 10px;
+}
+.pub-tree-tab:hover { color: var(--pub-text); }
+.pub-tree-tab.active {
+  color: var(--pub-accent);
+  border-bottom-color: var(--pub-accent);
+  font-weight: 600;
+}
+.pub-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: var(--pub-space-2);
+  overflow-y: auto;
+}
+.pub-btn-card {
+  background: var(--pub-surface-2);
+  border: 1px solid var(--pub-border);
+  border-radius: var(--pub-radius-md);
+  cursor: pointer;
+  padding: var(--pub-space-2);
+  text-align: center;
+  font-family: inherit;
+  color: var(--pub-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.pub-btn-card:hover { border-color: var(--pub-accent); background: var(--pub-surface-3); }
+.pub-btn-card.selected { border-color: var(--pub-accent); box-shadow: var(--pub-shadow-focus); }
+.pub-btn-card img,
+.pub-btn-card .pub-btn-ph {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pub-text-dim);
+  font-size: 22px;
+}
+.pub-btn-card .pub-btn-name {
+  font-size: var(--pub-text-xs);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.pub-btn-card .pub-btn-count {
+  font-size: 10px;
+  color: var(--pub-text-muted);
+}
+
+/* ── Floating datagrid panel ────────────────────────────────────────
+   Draggable popup hosting a Tabulator grid (button entries first).
+   One instance; reopening swaps content. */
+.pub-float {
+  position: fixed;
+  top: 110px;
+  left: calc(var(--pub-sidebar-w) + 60px);
+  width: 640px;
+  max-width: 92vw;
+  height: 420px;
+  max-height: 80vh;
+  background: var(--pub-surface);
+  border: 1px solid var(--pub-border-strong);
+  border-radius: var(--pub-radius-panel);
+  box-shadow: var(--pub-shadow-lg);
+  display: none;
+  flex-direction: column;
+  z-index: 90;
+  resize: both;
+  overflow: hidden;
+}
+.pub-float.open { display: flex; }
+.pub-float-head {
+  display: flex;
+  align-items: center;
+  gap: var(--pub-space-2);
+  padding: var(--pub-space-2) var(--pub-space-3);
+  border-bottom: 1px solid var(--pub-border);
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+.pub-float-title {
+  font-size: var(--pub-text-sm);
+  font-weight: 600;
+  color: var(--pub-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pub-float-body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--pub-space-2);
+}
+.pub-float-body .pub-grid { height: 100%; }
+
+/* ── Breakpoint matrix ──────────────────────────────────────────────
+   Size×size value matrix for breakpoint-type install tables. Heat wash
+   is painted inline by the controller (accent→accent-2 interpolation,
+   resolved from the live theme tokens); structure lives here. */
+.pub-bp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pub-space-2);
+  font-size: var(--pub-text-xs);
+  color: var(--pub-text-muted);
+  margin: var(--pub-space-2) 0 var(--pub-space-3);
+}
+.pub-bp-meta span {
+  background: var(--pub-surface-2);
+  border: 1px solid var(--pub-border);
+  border-radius: var(--pub-radius-sm);
+  padding: 2px 8px;
+}
+.pub-bp-wrap {
+  overflow: auto;
+  border: 1px solid var(--pub-border);
+  border-radius: var(--pub-radius-md);
+  max-height: calc(100vh - var(--pub-topbar-h) - 290px);
+}
+.pub-bp-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--pub-text-xs);
+  font-family: var(--pub-font-mono);
+}
+.pub-bp-table th {
+  background: var(--pub-surface-2);
+  color: var(--pub-text-muted);
+  font-weight: 600;
+  padding: 5px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: inset 0 -1px 0 var(--pub-border);
+  text-align: right;
+  white-space: nowrap;
+}
+.pub-bp-table th:first-child,
+.pub-bp-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--pub-surface-2);
+  color: var(--pub-text-muted);
+  font-weight: 600;
+  box-shadow: inset -1px 0 0 var(--pub-border);
+}
+.pub-bp-table th:first-child { z-index: 3; }
+.pub-bp-table td {
+  padding: 4px 10px;
+  text-align: right;
+  color: var(--pub-text);
+  border-bottom: 1px solid var(--pub-border);
+  white-space: nowrap;
+}
+
+/* ── Split resizer ──────────────────────────────────────────────────
+   Drag divider between a split-layout's panes (Install Times ribbon —
+   long table names need a widenable list). */
+.split-resizer {
+  flex: 0 0 5px;
+  cursor: col-resize;
+  background: var(--pub-border);
+  border-radius: 2px;
+  margin: var(--pub-space-2) 1px;
+  transition: background var(--pub-duration-fast) var(--pub-ease);
+  touch-action: none;
+}
+.split-resizer:hover,
+.split-resizer:active { background: var(--pub-accent); }

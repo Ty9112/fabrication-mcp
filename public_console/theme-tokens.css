@@ -1,0 +1,205 @@
+/*
+ * theme-tokens.css — Fabrication MCP Console design tokens
+ *
+ * Design tokens for the fabrication-mcp public console.
+ * Palette sampled from the Autodesk MEP Content Editor authenticated app,
+ * supplemented by published Autodesk ArtifaktElement design-system vocabulary.
+ *
+ * Namespace: --pub-* (isolated from other token namespaces)
+ *
+ * Themes: html (light default) | html[data-theme="dark"]
+ *
+ * Surface layering — light (screenshot-sampled):
+ *   Page bg       #f5f5f5  warm off-white
+ *   Panel/card    #ffffff  content panes pure white
+ *   Toolbar strip #f0f0f0  header rows, split toolbars
+ *   Nav sidebar   #f5f5f5  matches page bg; hover #e8e8e8
+ *   Top chrome    #ffffff  thin topbar, white
+ *
+ * Surface layering — dark (engineering near-black):
+ *   Page bg       #111214  engineering near-black
+ *   Panel/card    #18191d  lifted surface
+ *   Toolbar strip #1e2025  section headers, toolbar strips
+ *   Nav sidebar   #111214  matches page bg
+ *   Top chrome    #16171b  slightly lifted from page bg
+ *
+ * Accent primary: Autodesk blue #0696d7
+ * Accent mark:    Fabrication magenta #cb1e78 (from product tile gradient)
+ *                 Used ONLY for the brand tile and as a subtle accent-2 token.
+ *                 NOT applied to surfaces or large areas.
+ */
+
+/* ── Open Props aliases ─────────────────────────────────────────────── */
+/* Map Open Props vars to pub-* namespace so style.css stays clean     */
+:root {
+  /* Shadow scale (wraps --shadow-1 through --shadow-4 from shadows.min.css) */
+  --pub-shadow-xs:     var(--shadow-1);
+  --pub-shadow-sm:     var(--shadow-2);
+  --pub-shadow-md:     var(--shadow-3);
+  --pub-shadow-lg:     var(--shadow-4);
+  --pub-shadow-focus:  0 0 0 2px var(--pub-accent-dim);
+
+  /* Easing aliases (from easings.min.css) */
+  --pub-ease:          var(--ease-2);          /* standard: gentle decelerate */
+  --pub-ease-out:      var(--ease-out-3);      /* exits, reveals */
+  --pub-ease-spring:   var(--ease-spring-2);   /* micro-interactions */
+  --pub-ease-squish:   var(--ease-squish-1);   /* toggle bounce */
+
+  /* Duration (NOT from Open Props — own values for engineering density) */
+  --pub-duration-fast: 120ms;
+  --pub-duration-base: 180ms;
+  --pub-duration-slow: 240ms;
+}
+
+/* ── Light theme (default) ──────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* Surface stack */
+  --pub-bg:           #f5f5f5;
+  --pub-surface:      #ffffff;
+  --pub-surface-2:    #f0f0f0;
+  --pub-surface-3:    #e8e8e8;
+  --pub-input-bg:     #ffffff;
+
+  /* Borders */
+  --pub-border:       #e0e0e0;
+  --pub-border-strong:#bdbdbd;
+
+  /* Accent — Autodesk blue */
+  --pub-accent:       #0696d7;
+  --pub-accent-hover: #0578af;
+  --pub-accent-wash:  rgba(6, 150, 215, 0.07);
+  --pub-accent-dim:   rgba(6, 150, 215, 0.14);
+
+  /* Accent-2 — Fabrication magenta (brand tile only + subtle indicator) */
+  --pub-accent-2:     #cb1e78;
+  --pub-accent-2-dim: rgba(203, 30, 120, 0.12);
+
+  /* Semantic */
+  --pub-ok:           #388e3c;
+  --pub-warn:         #e65100;
+  --pub-danger:       #d32f2f;
+  --pub-ok-wash:      rgba(56, 142, 60, 0.10);
+  --pub-warn-wash:    rgba(230, 81, 0, 0.10);
+  --pub-danger-wash:  rgba(211, 47, 47, 0.10);
+
+  /* Text */
+  --pub-text:         #212121;
+  --pub-text-muted:   #616161;
+  --pub-text-dim:     #9e9e9e;
+  --pub-text-link:    #0696d7;
+
+  /* Topbar accent edge (1px top border signature move) */
+  --pub-topbar-edge:  var(--pub-accent-2);
+
+  /* Active nav indicator color */
+  --pub-nav-indicator: var(--pub-accent);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────── */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surface stack — engineering near-black, distinct from common dark-IDE palettes */
+  --pub-bg:           #111214;
+  --pub-surface:      #18191d;
+  --pub-surface-2:    #1e2025;
+  --pub-surface-3:    #26272d;
+  --pub-input-bg:     #18191d;
+
+  /* Borders — hairline on dark */
+  --pub-border:       rgba(255, 255, 255, 0.08);
+  --pub-border-strong:rgba(255, 255, 255, 0.16);
+
+  /* Accent — same blue, confirmed readable on dark surfaces */
+  --pub-accent:       #1aabf0;
+  --pub-accent-hover: #3dbaf5;
+  --pub-accent-wash:  rgba(26, 171, 240, 0.09);
+  --pub-accent-dim:   rgba(26, 171, 240, 0.18);
+
+  /* Accent-2 — magenta reads well on dark */
+  --pub-accent-2:     #e8399a;
+  --pub-accent-2-dim: rgba(232, 57, 154, 0.14);
+
+  /* Semantic — softened for dark surfaces */
+  --pub-ok:           #4caf50;
+  --pub-warn:         #ff8f40;
+  --pub-danger:       #ef5350;
+  --pub-ok-wash:      rgba(76, 175, 80, 0.12);
+  --pub-warn-wash:    rgba(255, 143, 64, 0.12);
+  --pub-danger-wash:  rgba(239, 83, 80, 0.12);
+
+  /* Text — off-white body, visible hierarchy */
+  --pub-text:         #e8e9ea;
+  --pub-text-muted:   #9ba0a8;
+  --pub-text-dim:     #5c616b;
+  --pub-text-link:    #1aabf0;
+
+  /* Topbar edge — magenta pops on dark topbar */
+  --pub-topbar-edge:  var(--pub-accent-2);
+
+  /* Nav indicator on dark — accent blue */
+  --pub-nav-indicator: var(--pub-accent);
+
+  /* Open Props shadow override for dark mode */
+  --shadow-color: 220 40% 2%;
+  --shadow-strength: 25%;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────── */
+/*
+ * ArtifaktElement is Autodesk's brand typeface. Cannot ship files but
+ * list first — users with Autodesk desktop products get authentic rendering.
+ * Fallback chain: Inter (closest geometric match) → system-ui → Arial.
+ */
+:root {
+  --pub-font:         'ArtifaktElement', 'Inter', 'Roboto', system-ui, -apple-system,
+                      'Segoe UI', Arial, sans-serif;
+  --pub-font-display: 'ArtifaktLegend', 'ArtifaktElement', 'Inter', system-ui, sans-serif;
+  --pub-font-mono:    'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas,
+                      'Courier New', monospace;
+}
+
+/* ── Type scale ─────────────────────────────────────────────────────── */
+/* Dense data app — 13px base */
+:root {
+  --pub-text-xs:      11px;
+  --pub-text-sm:      12px;
+  --pub-text-base:    13px;
+  --pub-text-md:      14px;
+  --pub-text-lg:      15px;
+  --pub-text-xl:      17px;
+  --pub-text-2xl:     20px;
+  --pub-line-height:  1.45;
+}
+
+/* ── Spacing ────────────────────────────────────────────────────────── */
+:root {
+  --pub-space-1:  4px;
+  --pub-space-2:  8px;
+  --pub-space-3:  12px;
+  --pub-space-4:  16px;
+  --pub-space-5:  20px;
+  --pub-space-6:  24px;
+}
+
+/* ── Radius ─────────────────────────────────────────────────────────── */
+:root {
+  --pub-radius-sm:    4px;
+  --pub-radius-md:    8px;
+  --pub-radius-lg:    24px;
+  --pub-radius-panel: 0px;
+}
+
+/* ── Layout constants ───────────────────────────────────────────────── */
+:root {
+  --pub-topbar-h:   40px;
+  --pub-sidebar-w: 168px;
+}
+
+/* ── Tab indicator ──────────────────────────────────────────────────── */
+:root {
+  --pub-tab-indicator-h:     2px;
+  --pub-tab-indicator-color: var(--pub-accent);
+}

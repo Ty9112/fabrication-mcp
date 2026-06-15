@@ -305,7 +305,7 @@ def live_search_install_entries(
     REQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.
 
     - table_name: filter by install time table name
-    - group: filter by group (e.g. "MCAA", "Plumbing")
+    - group: filter by group (e.g. "Piping", "Plumbing")
     - q: free-text search across product_id, description, harrison_code
     - limit: max results (default 200; use 0 for all)
     - offset: pagination offset

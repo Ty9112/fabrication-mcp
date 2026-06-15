@@ -29,7 +29,7 @@ import fabrication_mcp.cache as _cache_mod
 def get_database_summary() -> dict:
     """
     Returns a high-level summary of all available Fabrication database data:
-    record counts, list of manufacturers, product groups, mapper sources,
+    record counts, list of manufacturers, product groups, data sources,
     and data file timestamps. Always call this first in a new session to
     understand the scope of available data before querying.
 
@@ -45,7 +45,7 @@ def get_database_summary() -> dict:
     - products_with_labor: products with non-zero LaborRate or BpLaborValue
     - products_with_harrison: products with a real harrison_code (not N/A)
     - products_with_discount: products with a discount code string assigned
-    - mapped_product_count: validated mapped subset items in All_Mapped_Deduped (~7.4k)
+    - mapped_product_count: validated mapped subset (~7.4k)
     """
     _check_bridge_sync()  # auto-detect profile switch
     p = _products()
@@ -65,7 +65,7 @@ def get_database_summary() -> dict:
         cache.config.product_info_pattern,
         exclude=cache.config.product_info_exclude,
     )
-    mapped_path = _latest_csv(cache.config.mapping_dir, "All_Mapped_Deduped_*.csv") if cache.config.mapping_dir else None
+    mapped_path = _latest_csv(cache.config.mapping_dir, "mapped_products_*.csv") if cache.config.mapping_dir else None
 
     # Count "real" products: IsProductListed is "Yes" or "No" (not "N/A" or blank)
     # NOTE: _val() already converts N/A to None, so truthy checks work correctly.

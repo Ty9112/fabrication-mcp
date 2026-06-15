@@ -20,12 +20,12 @@ from fabrication_mcp.loaders import (
     _load_mapped_output, _load_item_data,
 )
 
-# ── Open-core hooks (installed by the private harris extension at boot) ───────
+# ── Open-core hooks (installed by the optional extension at boot) ───────
 # Public builds leave these None and run in pure-CSV mode. A private build installs an
 # external ProductInfo loader, the discount loader, and the catalog loader here.
 _external_product_loader = None   # (config_id=...) -> list[dict] | None
 _discount_loader = None           # (directory=...) -> dict[str, float]
-_external_catalog_loader = None   # () -> (list[dict], SearchIndex); set by harris.catalog.register()
+_external_catalog_loader = None   # () -> (list[dict], SearchIndex); set by fab_ext.catalog.register()
 
 
 # ── SearchIndex ──────────────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ def _load_profile_data(cache: ProfileCache) -> None:
 
     ProductInfo source depends on the open-core hook:
     - public build (no external loader): load from CSV in the profile's product_info_dir
-    - private build (harris installs an external loader): load from that source, falling
+    - private build (extension installs an external loader): load from that source, falling
       back to CSV if the external read returns None
     """
     cfg = cache.config

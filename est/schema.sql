@@ -307,7 +307,7 @@ WHERE e.source_type = 'estimate'
 ORDER BY e.job_file_name, e.service;
 
 -- Status timeline: status progression per item with timestamps
--- Critical for cross-platform status linking with CMiC and Stratus
+-- Critical for cross-platform status linking with external ERP and shop tracking systems
 CREATE VIEW IF NOT EXISTS v_status_timeline AS
 SELECT
     e.job_file_name,
@@ -334,7 +334,7 @@ WHERE e.source_type = 'estimate'
 ORDER BY e.job_file_name, e.spool, e.item_number;
 
 -- Spool summary: aggregates cost/labor/status by spool name within a job
--- Bridges directly to Stratus which tracks at spool level
+-- Aggregates cost/labor/status by spool within a job
 CREATE VIEW IF NOT EXISTS v_spool_summary AS
 SELECT
     e.job_file_name,

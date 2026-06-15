@@ -1,0 +1,863 @@
+{
+ "ok": true,
+ "count": 44,
+ "tools": [
+  {
+   "name": "get_database_summary",
+   "description": "Returns a high-level summary of all available Fabrication database data:\nrecord counts, list of manufacturers, product groups, data sources,\nand data file timestamps. Always call this first in a new session to\nunderstand the scope of available data before querying.\n\nAlso includes a bridge_status field showing whether the live AutoCAD bridge\nis available and which database it's serving (database_name, database_path,\nprofile_name).\n\nKey count distinctions (N/A is NEVER a valid value \u2014 always treated as null/empty):\n- product_info_count: total raw rows in ProductInfo CSV (~236k)\n- listed_products_count: items where IsProductListed != \"N/A\" \u2014 these are\n  the \"real\" products visible in the Fabrication product editor (~164k)\n- products_with_cost: products with non-zero Cost value\n- products_with_labor: products with non-zero LaborRate or BpLaborValue\n- products_with_harrison: products with a real harrison_code (not N/A)\n- products_with_discount: products with a discount code string assigned\n- mapped_product_count: validated mapped subset (~7.4k)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "search_products",
+   "description": "Search the Fabrication ProductInfo database (~236k raw rows; ~164k listed products)\nby free-text query matched against description, product name, size, specification,\nand harrison_code fields (case-insensitive).\n\nOptional filters:\n- manufacturer: e.g. 'Nibco', 'Anvil', 'Shaw', 'Victaulic', 'Weldbend'\n- material: e.g. 'Stainless Steel', 'Carbon Steel', 'Cast Iron', 'Copper'\n- product_group: e.g. 'Mechanical', 'Plumbing (DWV)', 'HVAC'\n- install_type: e.g. 'Welded', 'Threaded', 'Press', 'Grooved'\n- price_status: 'Active', 'PriceOnApplication', or 'Discontinued'\n- is_product_listed: True = has a product list entry, False = no product list\n\nReturns fields: pi_id, description, size, manufacturer, material, harrison_code,\ncost, price_units, price_status, labor_rate, labor_units, install_type, specification.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "query": {
+      "type": "string"
+     },
+     "manufacturer": {
+      "default": null,
+      "type": "string"
+     },
+     "material": {
+      "default": null,
+      "type": "string"
+     },
+     "product_group": {
+      "default": null,
+      "type": "string"
+     },
+     "install_type": {
+      "default": null,
+      "type": "string"
+     },
+     "price_status": {
+      "default": null,
+      "type": "string"
+     },
+     "is_product_listed": {
+      "default": null,
+      "type": "boolean"
+     },
+     "limit": {
+      "default": 25,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "query"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_product_by_id",
+   "description": "Retrieve a single Fabrication product by its pi_id, e.g. 'MDSK_ALL1_000007-0001'\nor 'ADSK_PIPE_000123-0002'.\nReturns all available fields including pricing, labor, supplier codes,\nand breakpoint labor data. Returns null if not found.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "product_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "product_id"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_product_by_harrison_code",
+   "description": "Look up a Fabrication product by its harrison_code (a ProductInfo column).\nThe harrison_code is the internal Fabrication database ID that appears in price lists.\nReturns null if not found.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "harrison_code": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "harrison_code"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "estimate_cost",
+   "description": "Estimate material and labor cost for a list of Fabrication product IDs using the\ncost and labor_rate fields in your own Fabrication database (ProductInfo).\n\nThis is the public foundation estimator: each item is priced straight from the\nFabrication database, with no external price catalog, no net-price lookup, and no\ndiscount multipliers. Configure price lists inside your Fabrication database to\ncontrol the cost values this reads.\n\n- product_ids: list of pi_id values (e.g. ['MDSK_ALL1_000007-0001', ...])\n- quantities: optional list of quantities (defaults to 1.0 each)\n\nReturns a line-by-line breakdown and total material + labor estimate.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "product_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "quantities": {
+      "default": null,
+      "items": {
+       "type": "number"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "product_ids"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "refresh_cache",
+   "description": "Clears the in-memory CSV caches so the next query reloads from disk.\nUse this after running FabricationSample export commands or after the\nmapping pipeline has produced new output files.\n\nIf profile is specified, only that profile's cache is cleared.\nIf no profile specified, clears the active profile's cache.\nAlso clears estimate caches (per-model) and the catalog cache (shared).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "profile": {
+      "default": null,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_live_status",
+   "description": "Check if the Fabrication CADmep MCP bridge is running in AutoCAD.\nReturns connection status, live database record counts, and timestamp.\nUse this to confirm AutoCAD is running with the FabricationSample plugin loaded\nbefore calling any live_* tools.\n\nIf AutoCAD is not running, use the CSV-based tools (search_products, get_product_by_id, etc.)\nwhich work from the last exported data files.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_search_products",
+   "description": "Search the live Fabrication ProductDatabase in AutoCAD (no CSV required).\nReturns real-time data directly from the open Fabrication job/database.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\nUse get_live_status() first to verify bridge is up.\nFall back to search_products() if bridge is unavailable.\n\nParameters:\n- query: free-text match against description, product name, size\n- manufacturer: e.g. 'Nibco', 'Anvil', 'Shaw', 'Victaulic'\n- material: e.g. 'Stainless Steel', 'Carbon Steel', 'Cast Iron'\n- install_type: e.g. 'Welded', 'Threaded', 'Grooved', 'Press'\n- limit: max results (default 25)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "query": {
+      "default": null,
+      "type": "string"
+     },
+     "manufacturer": {
+      "default": null,
+      "type": "string"
+     },
+     "material": {
+      "default": null,
+      "type": "string"
+     },
+     "install_type": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 25,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_product",
+   "description": "Retrieve a single live Fabrication product by its database ID from AutoCAD.\nReturns full product definition including supplier IDs (Harrison code, Ferguson code, etc.).\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "product_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "product_id"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_services",
+   "description": "List all Fabrication services from the live AutoCAD database.\nReturns service name, service type, and template for each service.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_price_lists",
+   "description": "List price lists from the live Fabrication database in AutoCAD.\nReturns supplier group name, list name, and entry count for each price list.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\n- supplier_group: filter by supplier group name (partial match)\n- limit: max results (default 100)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "supplier_group": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 100,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_install_times",
+   "description": "List installation times tables from the live Fabrication database in AutoCAD.\nReturns table name, group, type (simple vs breakpoint), and entry count.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "limit": {
+      "default": 100,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_job_items",
+   "description": "List items placed in the current AutoCAD drawing (the active Fabrication job).\nReturns product description, size, service, section, status, and cost/labor data\nfor each placed item.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\nOptional filters:\n- service: filter by service name (partial match)\n- status: filter by item status (partial match)\n- section: filter by section name (partial match)\n- q: search across name, cid, and unique_id fields\n- limit: max results (default 200; use 0 for all)\n- offset: pagination offset (default 0)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "service": {
+      "default": null,
+      "type": "string"
+     },
+     "status": {
+      "default": null,
+      "type": "string"
+     },
+     "section": {
+      "default": null,
+      "type": "string"
+     },
+     "q": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 200,
+      "type": "integer"
+     },
+     "offset": {
+      "default": 0,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_job_item",
+   "description": "Retrieve a single placed job item from the current AutoCAD drawing by its unique ID.\nReturns full item detail including product data, position, service, and cost/labor.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\n- unique_id: the item's uniqueId from live_get_job_items results",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "unique_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "unique_id"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_product_detail",
+   "description": "Retrieve full product detail with prices and install times from the live\nAutoCAD Fabrication database. Combines product definition, price list entries,\nand install time entries into a single response.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "product_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "product_id"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_search_price_entries",
+   "description": "Search individual price list entries from the live Fabrication database.\nReturns product_id, description, manufacturer, size, harrison_code,\nsupplier_group, list_name, cost, discount_code, units, date, and status per entry.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\n- supplier_group: filter by supplier/price-group name\n- list_name: filter by specific price list name\n- q: free-text search across product_id, description, harrison_code\n- limit: max results (default 200; use 0 for all)\n- offset: pagination offset",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "supplier_group": {
+      "default": null,
+      "type": "string"
+     },
+     "list_name": {
+      "default": null,
+      "type": "string"
+     },
+     "q": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 200,
+      "type": "integer"
+     },
+     "offset": {
+      "default": 0,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_search_install_entries",
+   "description": "Search individual install time entries from the live Fabrication database.\nReturns product_id, description, manufacturer, size, harrison_code,\ntable_name, group, labor_rate, units, and status per entry.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\n- table_name: filter by install time table name\n- group: filter by group (e.g. \"Piping\", \"Plumbing\")\n- q: free-text search across product_id, description, harrison_code\n- limit: max results (default 200; use 0 for all)\n- offset: pagination offset",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "table_name": {
+      "default": null,
+      "type": "string"
+     },
+     "group": {
+      "default": null,
+      "type": "string"
+     },
+     "q": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 200,
+      "type": "integer"
+     },
+     "offset": {
+      "default": 0,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_service_template_tree",
+   "description": "Get the full hierarchical template tree for a Fabrication service.\nReturns the complete structure: service -> templates -> tabs -> buttons -> items -> conditions.\nUseful for understanding service configuration, available fittings, and button layouts.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\n- service_name: exact service name (use live_get_services to get valid names)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "service_name": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "service_name"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_service_items",
+   "description": "Get catalog items available within Fabrication services (template buttons/conditions).\nThis is the service CATALOG \u2014 not the current job. Returns entries like:\nservice_name, template_name, button_name, item_path, entry_name, condition_desc.\n\nUse live_get_job_items to see items placed in the current open drawing.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\n- service: filter by service name (partial match OK)\n- limit: max items to return (default 500, 0 = no limit)\n- offset: pagination offset",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "service": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null
+     },
+     "limit": {
+      "default": 500,
+      "type": "integer"
+     },
+     "offset": {
+      "default": 0,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_service_buttons",
+   "description": "Get service button definitions with their items from CSV export.\nWorks offline (no AutoCAD/bridge needed). Filters by service and/or button name.\nData comes from the ExportItemData CSV export.\n\n- service_name: filter by service name (partial match, case-insensitive)\n- button_name: filter by button name (partial match, case-insensitive)\n- include_items: if True, include individual items per button (capped at 50 per button)\n- limit: max buttons to return (default 200)",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "service_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null
+     },
+     "button_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null
+     },
+     "include_items": {
+      "default": false,
+      "type": "boolean"
+     },
+     "limit": {
+      "default": 200,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_materials",
+   "description": "Get all materials configured in the Fabrication database.\nReturns name, group, and gauge count for each material.\nUseful for filtering products by material and understanding database configuration.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_sections",
+   "description": "Get all sections configured in the Fabrication database.\nSections are used to categorise job items (e.g. by floor or area).\nReturns index and description for each section.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_get_specifications",
+   "description": "Get all specifications configured in the Fabrication database.\nSpecifications define pipe/duct standards (e.g. Sch 40, CPVC, etc.).\nReturns name for each specification.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_export_cache",
+   "description": "Trigger a fresh CSV export from the live Fabrication database, then reload\nthe MCP server's in-memory caches so subsequent CSV-based queries reflect\nthe latest data.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nPass dry_run=true to preview the action without executing it.\n\nReturns the bridge export status and the cache reload result.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "dry_run": {
+      "default": false,
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_swap_job_item",
+   "description": "Swap a placed job item to a different product in the active AutoCAD drawing.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\nWARNING: This modifies the active AutoCAD drawing. The item identified by\nunique_id will be replaced with the product specified by new_product_id.\nUse live_undo_swap to reverse the operation if needed.\n\nParameters:\n- unique_id: the item's uniqueId (from live_get_job_items results)\n- new_product_id: the database ID of the product to swap to\n  (e.g. 'MDSK_ALL1_000007-0001')\n- confirm: GUARDED mutation \u2014 must be true to execute. Ask the user first.\n- dry_run: preview the swap without executing it.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "unique_id": {
+      "type": "string"
+     },
+     "new_product_id": {
+      "type": "string"
+     },
+     "confirm": {
+      "default": false,
+      "type": "boolean"
+     },
+     "dry_run": {
+      "default": false,
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "unique_id",
+     "new_product_id"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "live_undo_swap",
+   "description": "Undo the last item swap operation performed via live_swap_job_item.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\nPass dry_run=true to preview the action without executing it.\n\nReturns the undo result from the bridge, including the item that was restored\nto its previous product.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "dry_run": {
+      "default": false,
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_estimate_items",
+   "description": "Query estimate data from a model's estimate.json sidecar file.\nReturns per-item cost/labor data keyed by IFC GlobalId \u2014 the same data\nthat feeds ESTmep cost estimation and Power BI reports.\n\nThis is job-level data: every placed item in a Fabrication job with its\nmaterial cost (M-Rate), fabrication time (FabTime/FabCost), installation\ntime (InstallTime/FieldCost), weight, length, area, volume, and service info.\n\nParameters:\n- model_id: hub model identifier (default: first model in active profile)\n- service: filter by Service name (partial match, case-insensitive)\n- section: filter by Section (partial match)\n- drawing: filter by Drawing (partial match)\n- material: filter by ProductMaterial (partial match)\n- dbid: filter by exact DatabaseId (pi_id), e.g. 'MDSK_ALL1_000007-0001'\n- global_id: return a single item by its IFC GlobalId\n- limit: max results (default 100, 0 = no limit)\n- offset: pagination offset\n\nKey fields returned: GlobalId, dbid, CID, Service, ServiceAbbr, Section,\nDrawing, Zone1, ProductDescription, ProductSize, ProductMaterial, Supplier,\nM_Rate, FabTime, FabCost, InstallTime, FieldCost, Weight, Length, Area, Qty.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "model_id": {
+      "default": null,
+      "type": "string"
+     },
+     "service": {
+      "default": null,
+      "type": "string"
+     },
+     "section": {
+      "default": null,
+      "type": "string"
+     },
+     "drawing": {
+      "default": null,
+      "type": "string"
+     },
+     "material": {
+      "default": null,
+      "type": "string"
+     },
+     "dbid": {
+      "default": null,
+      "type": "string"
+     },
+     "global_id": {
+      "default": null,
+      "type": "string"
+     },
+     "limit": {
+      "default": 100,
+      "type": "integer"
+     },
+     "offset": {
+      "default": 0,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_estimate_summary",
+   "description": "Aggregate estimate data for a model into cost/labor summaries.\nReturns totals grouped by the specified dimension \u2014 ideal for Power BI\ndashboards, cost reports, and executive summaries.\n\nParameters:\n- model_id: hub model identifier (default: first model in active profile)\n- group_by: dimension to group by \u2014 'service', 'section', 'material',\n  'supplier', 'fitting_type', 'service_type', or 'drawing' (default: 'service')\n\nReturns per-group: item_count, total_weight, total_length, total_material_cost,\ntotal_fab_cost, total_install_cost, total_cost (material + fab + install).\nAlso returns grand totals across all groups.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "model_id": {
+      "default": null,
+      "type": "string"
+     },
+     "group_by": {
+      "default": "service",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_load_job",
+   "description": "Load estimate data from ESTmep export files into the SQLite database.\n\nProvide EITHER job_file_name (auto-resolves files from PROJECTS/Exports/) OR\nestimate_path (explicit path to estimate.txt). Loading is idempotent -- reloading\na job replaces its previous data. Pass dry_run=true to preview without loading.\n\nArgs:\n    job_file_name: e.g. \"SAMPLE-JOB-MP_PL_R24_batched.20260220\" -- auto-resolves\n                   estimate, ancillaries, and TFC files from PROJECTS/Exports/\n    estimate_path: Explicit path to an estimate.txt file (overrides job_file_name)\n    dry_run: preview which files would be loaded without writing the database\n\nReturns load statistics: items_loaded, ancillaries_loaded, tfc_loaded, db_path.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     },
+     "estimate_path": {
+      "default": "",
+      "type": "string"
+     },
+     "dry_run": {
+      "default": false,
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_list_jobs",
+   "description": "List all jobs loaded in the EST SQLite database.\n\nReturns each job's file name, display name, item count, ancillary count,\nTFC count, and import timestamp.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_job_summary",
+   "description": "Get cost and labor summary for a job, grouped by service.\n\nShows per-service: item_count, total_material, total_fab_cost, total_field_cost,\ntotal_cost, total_weight, fab_hours, install_hours.\n\nSorted by total_cost descending.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "job_file_name"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_price_gaps",
+   "description": "Find estimate items with missing or zero costs (material, fab, or field cost).\n\nThese represent pricing gaps that need attention -- items where ESTmep couldn't\nresolve the cost from the price list, or where no price list entry exists.\n\nArgs:\n    job_file_name: Optional -- filter to a specific job. If empty, checks all jobs.\n\nReturns up to 100 items with gap details.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_query",
+   "description": "Run a read-only SQL query against the EST SQLite database.\n\nAvailable tables: jobs, estimate_items, ancillaries, etl_runs.\nAvailable views: v_job_service_summary, v_tfc_items, v_price_gaps,\nv_status_timeline, v_spool_summary, v_material_takeoff, v_ancillary_summary.\n\nCommon patterns:\n- SELECT service, COUNT(*) AS n, SUM(price_list_cost) AS material FROM estimate_items WHERE job_file_name = ? GROUP BY service\n- SELECT * FROM v_tfc_items WHERE job_file_name = ? AND equipment_name LIKE '%AHU%'\n- SELECT * FROM ancillaries WHERE job_file_name = ? AND ancillary_type = 'Support Rods'\n\nArgs:\n    sql: SQL query (SELECT only). Use ? placeholder for job_file_name parameter.\n    job_file_name: Value for ? placeholder (if used in query).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "sql": {
+      "type": "string"
+     },
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     }
+    },
+    "required": [
+     "sql"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_status_timeline",
+   "description": "Query item status history for cross-platform status tracking.\n\nShows each item's current status, previous statuses, and their dates -- the full\nstatus progression chain. Only items with at least one status value are returned.\n\nArgs:\n    job_file_name: Optional -- filter to a specific job. If empty, returns all (limit 500).\n\nReturns items with: current_status, current_status_date, previous_status_1/2 and dates.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_spool_analysis",
+   "description": "Analyze cost and labor data aggregated by spool.\n\nShows per-spool: item_count, total_material, total_fab_cost, total_field_cost,\ntotal_weight, fab_hours, install_hours, and status breakdown.\n\nArgs:\n    job_file_name: Optional -- filter to a specific job.\n    spool: Optional -- filter to a specific spool name.\n\nOnly items with a spool name assigned are included.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     },
+     "spool": {
+      "default": "",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_material_takeoff",
+   "description": "Generate a BOM-style material takeoff grouped by product name, material, and size.\n\nShows quantities, total cost, total weight per product line -- useful for\ngenerating material purchase lists and vendor quotes.\n\nArgs:\n    job_file_name: Optional -- filter to a specific job.\n    service: Optional -- filter to a specific service (e.g. \"CHW Supply\").\n    material: Optional -- filter to a specific material (e.g. \"Carbon Steel\").\n\nReturns up to 500 product line items sorted by total cost descending.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "job_file_name": {
+      "default": "",
+      "type": "string"
+     },
+     "service": {
+      "default": "",
+      "type": "string"
+     },
+     "material": {
+      "default": "",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "est_list_exports",
+   "description": "List available ESTmep export files in PROJECTS/Exports/ that can be loaded.\n\nScans for estimate.txt files and shows which have matching ancillaries and TFC files.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "list_profiles",
+   "description": "List all registered data profiles with summary stats.\nProfiles represent different Fabrication database exports (e.g., a production\ndatabase vs. a training copy). Each profile has its own set of ProductInfo, mappings, and\ndiscount data. Call switch_profile() to change which profile is active.\n\nIf no profiles are registered, the server runs in legacy single-dataset mode.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "switch_profile",
+   "description": "Switch the active data context to a different profile.\nAll subsequent CSV-based queries (search_products, get_product_by_id, etc.) will use\nthis profile's data. Call list_profiles() first to see available profiles.\n\nThe shared catalog is shared across all profiles. Live bridge tools always reflect\nwhatever database CADmep has loaded (independent of active profile).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "profile": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "profile"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_active_profile",
+   "description": "Show which profile is currently active and its data summary.\nReturns the active profile name, display name, data counts, and data file paths.\nAlso includes a bridge_database field showing which database the live bridge is\nserving, so you can verify the MCP profile matches the AutoCAD session.\nIf no profile is active, returns legacy mode status.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "sync_profile_with_bridge",
+   "description": "Check if the bridge database has changed and sync the MCP profile to match.\nTriggers a bridge cache refresh and switches to the matching MCP profile.\nThis happens automatically every 30 seconds during normal tool use,\nbut call this explicitly after switching AutoCAD profiles for immediate sync.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "batch_product_lookup",
+   "description": "Look up multiple products by pi_id in a single call.\n\nReturns found records, missing IDs, and total requested count.\nCapped at 100 IDs per call to prevent oversized responses.\n\nArgs:\n    product_ids: List of pi_id values to look up (max 100).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "product_ids": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "product_ids"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "batch_harrison_lookup",
+   "description": "Look up multiple harrison codes in a single call.\n\nN/A codes are automatically skipped (N/A is the Fabrication database's\ndefault empty placeholder, not a valid value).\n\nReturns found records, missing codes, and total requested count.\nCapped at 100 codes per call to prevent oversized responses.\n\nArgs:\n    harrison_codes: List of harrison_code values to look up (max 100).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "harrison_codes": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "harrison_codes"
+    ],
+    "type": "object"
+   },
+   "allowed": true
+  },
+  {
+   "name": "get_diagnostics",
+   "description": "Returns a comprehensive diagnostics report for the fabrication-mcp MCP server.\n\nIncludes: Python version, FastMCP version, active profile info, bridge connectivity,\nEST database status, cache load times, and profile count.\n\nUseful for troubleshooting connectivity issues, verifying server state, and\nconfirming data availability before running queries.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "allowed": true
+  }
+ ]
+}
