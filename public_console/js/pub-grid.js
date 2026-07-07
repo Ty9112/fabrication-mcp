@@ -187,7 +187,7 @@ function applyQuickFilter(table, value) {
 
 /* ── PubProgressLoader ───────────────────────────────────────────────────── */
 /**
- * Progressive full-load helper for large datasets (products ~165k, pl-entries ~90k).
+ * Progressive full-load helper for large datasets (products and price-list entries at large scale).
  *
  * Pattern (matches panel-init.js lines 646-684 from the reference console):
  *  1. Fetch first batch (5,000 rows) → table.setData() for immediate display.

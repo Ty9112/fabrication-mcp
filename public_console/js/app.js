@@ -489,8 +489,8 @@ PanelControllers.products = (function() {
     function labelEl() { return document.getElementById('product-results-meta'); }
 
     // Row click → detail drawer. Detail route 404s on ids containing spaces
-    // (47.6% of the DB — bridge unescape gap), so the row itself is the
-    // fallback: render what we have, flag that prices/labor need the fix.
+    // (a substantial share of the DB — bridge unescape gap), so the row itself
+    // is the fallback: render what we have, flag that prices/labor need the fix.
     async function openProductDetail(rowData) {
         var gen = ++detailGen;
         var body = DetailDrawer.open(rowData.description || rowData.id);
@@ -664,10 +664,10 @@ PanelControllers.products = (function() {
             startProgressiveLoad('');
         });
 
-        // Initial view: ONE fast page (10k in ~0.3s), not the full 165k pull —
-        // auto-firing 17 batch requests on every page open starves the
-        // serialized bridge for other consumers (e.g. the reference console's
-        // service-tree calls). "Load All" runs the full progressive load.
+        // Initial view: ONE fast page (loads almost instantly), not the full
+        // dataset pull — auto-firing many batch requests on every page open
+        // starves the serialized bridge for other consumers (e.g. the reference
+        // console's service-tree calls). "Load All" runs the full progressive load.
         loadFirstPage();
     }
 
@@ -1052,13 +1052,13 @@ PanelControllers.pricelists = (function() {
         entryLoader = new PubProgressLoader(entryTable, lbl, 'Entries');
 
         // A price list is identified by supplier_group + list_name TOGETHER —
-        // two different lists can share a name (e.g. "Harrison List Prices"
-        // exists under two supplier groups; name-only filtering merged them:
-        // 93,491 + 44,871 showing as one 138,362 grid). The bridge filter is
-        // SUBSTRING match, so even supplier_group can over-match when one
-        // group's name is a prefix of another's — fetch server-narrowed pages,
-        // keep EXACT matches only, and trust the list's own entry_count as
-        // the authoritative total. Raw page offsets are tracked separately
+        // two different lists can share a name (e.g. a supplier price list
+        // exists under two supplier groups; name-only filtering merged them
+        // into one combined grid). The bridge filter is SUBSTRING match, so
+        // even supplier_group can over-match when one group's name is a
+        // prefix of another's — fetch server-narrowed pages, keep EXACT
+        // matches only, and trust the list's own entry_count as the
+        // authoritative total. Raw page offsets are tracked separately
         // from the filtered count the loader accumulates.
         var rawOffset = 0;
         function fetchExact(limit) {
@@ -2099,10 +2099,10 @@ PanelControllers.templates = (function() {
 
 /* ══════════════════════════════════════════════════════════════
    Panel 12 — Install Times
-   Table list (5,019: 5,002 breakpoint + 17 simple) → type-aware
+   Table list (a mix of breakpoint and simple types) → type-aware
    detail: breakpoint tables render a heat-mapped size×size matrix;
    simple tables render their labor entries grid. Identity is
-   (name, group) — 513 names collide across material groups.
+   (name, group) — some names collide across material groups.
    ══════════════════════════════════════════════════════════════ */
 PanelControllers.installtimes = (function() {
     var loaded = false;
@@ -2275,7 +2275,8 @@ PanelControllers.installtimes = (function() {
         // Recipe rule #1: the resolved height goes on the WRAPPER — Tabulator's
         // default height:'100%' rewrites the mount's own inline height, and 100%
         // of an auto-height parent is indeterminate → virtualization silently
-        // OFF (measured here: 5,000 real DOM rows, 15.5s setData + 17.5s sort).
+        // OFF (measured here: thousands of real DOM rows → multi-second
+        // setData/sort).
         var gridWrap = el('div', null);
         gridWrap.style.cssText = 'height:calc(100vh - var(--pub-topbar-h) - 290px);min-height:260px;';
         var mount = el('div', 'pub-grid');
