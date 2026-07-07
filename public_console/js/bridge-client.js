@@ -193,8 +193,9 @@ var BridgeClient = (function() {
     }
 
     // Single product with prices + install times + linked services + image_path.
-    // KNOWN BRIDGE LIMIT: ids containing spaces (47.6% of the DB) 404 until the
-    // bridge unescapes the path segment — callers must fall back to row data.
+    // KNOWN BRIDGE LIMIT: ids containing spaces (a substantial share of the DB)
+    // 404 until the bridge unescapes the path segment — callers must fall back
+    // to row data.
     async function getProductDetail(id) {
         return await get('/api/products/' + encodeURIComponent(id), SAMPLE.productDetail);
     }
@@ -214,7 +215,7 @@ var BridgeClient = (function() {
     }
 
     // ── Labor / pricing (Batch 3) ─────────────────────────────────────────────
-    // Install-time tables: identity is (name, group) TOGETHER — 513 names
+    // Install-time tables: identity is (name, group) TOGETHER — some names
     // collide across material groups. type: 'breakpoint' (matrix) | 'simple'
     // (entries). Bare-list response.
     async function getInstallTables() {
