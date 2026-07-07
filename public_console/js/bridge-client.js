@@ -299,9 +299,9 @@ var BridgeClient = (function() {
         priceEntries: {
             total: 5,
             data: [
-                { product_id: 'S001', description: '90 Elbow 2" No-Hub', size: '2"', harrison_code: '301CI2020', manufacturer: '(Generic)', material: 'Cast Iron', cost: 4.85, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
-                { product_id: 'S002', description: '90 Elbow 3" No-Hub', size: '3"', harrison_code: '301CI2030', manufacturer: '(Generic)', material: 'Cast Iron', cost: 9.20, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
-                { product_id: 'S003', description: '90 Elbow 4" No-Hub', size: '4"', harrison_code: '301CI2040', manufacturer: '(Generic)', material: 'Cast Iron', cost: 16.40, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
+                { product_id: 'S001', description: '90 Elbow 2" No-Hub', size: '2"', harrison_code: 'SAMPLE-HC-003', manufacturer: '(Generic)', material: 'Cast Iron', cost: 4.85, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
+                { product_id: 'S002', description: '90 Elbow 3" No-Hub', size: '3"', harrison_code: 'SAMPLE-HC-004', manufacturer: '(Generic)', material: 'Cast Iron', cost: 9.20, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
+                { product_id: 'S003', description: '90 Elbow 4" No-Hub', size: '4"', harrison_code: 'SAMPLE-HC-005', manufacturer: '(Generic)', material: 'Cast Iron', cost: 16.40, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
                 { product_id: 'S004', description: 'Tee 2" No-Hub', size: '2"', harrison_code: 'N/A', manufacturer: '(Generic)', material: 'Cast Iron', cost: 7.30, discount_code: 'Cast Iron:ci', units: '(each)', status: 'Active', supplier_group: 'Mechanical', list_name: 'Standard List' },
                 { product_id: 'S006', description: 'Coupling 2" PVC DWV', size: '2"', harrison_code: 'N/A', manufacturer: '(Generic)', material: 'PVC', cost: 1.20, discount_code: 'PVC:pvc', units: '(each)', status: 'Active', supplier_group: 'Plumbing', list_name: 'Plumbing Material' }
             ]
