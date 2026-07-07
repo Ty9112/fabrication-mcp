@@ -616,10 +616,10 @@ PanelControllers.products = (function() {
             ],
             // NO initialSort here — with an active sort, Tabulator RE-SORTS the
             // entire accumulated dataset on every addData batch (O(n²) over a
-            // progressive load: +10k went 20s→30s→40s→54s measured). The bridge
-            // already returns batches server-sorted by id; the loader applies
-            // the client sort ONCE on completion (see startProgressiveLoad).
-            // Perf at 165k rows: fitColumns avoids fitDataStretch's per-addData
+            // progressive load — stall times climb sharply as more rows land).
+            // The bridge already returns batches server-sorted by id; the loader
+            // applies the client sort ONCE on completion (see startProgressiveLoad).
+            // Perf at large row counts: fitColumns avoids fitDataStretch's per-addData
             // content re-measuring; no calc columns here so skip the calc walk.
             layout: 'fitColumns',
             columnCalcs: false
@@ -907,7 +907,7 @@ PanelControllers.pricelists = (function() {
                 ],
                 // No initialSort — applied once by the loader's onDone (an
                 // active sort re-sorts everything per addData batch: O(n²))
-                // Perf: same big-data settings as products (lists reach ~90k rows)
+                // Perf: same big-data settings as products (lists can also get very large)
                 layout: 'fitColumns',
                 columnCalcs: false
             });

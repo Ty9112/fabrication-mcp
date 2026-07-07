@@ -252,12 +252,12 @@ PubProgressLoader.prototype.start = function(fetchFn, batchSize, onDone) {
             offset = firstRows.length;
 
             // Background batches accumulate into a PLAIN ARRAY — the grid is
-            // not touched per step (rendering/processing 165k rows once is
-            // cheap; doing grid work 30+ times during the stream is not).
+            // not touched per step (rendering/processing the full dataset once
+            // is cheap; doing grid work 30+ times during the stream is not).
             // The buffer INCLUDES the first page: the final apply uses
             // replaceData (setData's optimized bulk path, scroll preserved).
-            // addData(bigArray) is row-by-row internally — measured ~47 MINUTES
-            // for 160k rows vs seconds for the same rows through setData.
+            // addData(bigArray) is row-by-row internally — measured dramatically
+            // slower at scale vs setData for the same rows.
             // Each fetch is individually guarded: retry once, then stop with
             // an honest label instead of looking "stuck".
             var buffer = firstRows.slice();

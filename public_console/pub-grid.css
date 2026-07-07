@@ -455,8 +455,8 @@ html[data-theme="dark"] .tabulator .tabulator-alert .tabulator-alert-msg {
 /* Products grid: explicit viewport-derived height. Its wrap is a PLAIN
    .grid-wrap (no height) — and Tabulator inside an indeterminate-height
    container silently disables virtualization and renders EVERY row as real
-   DOM (10k rows ≈ 100s stall, blocked main thread). A resolved height turns
-   the virtual DOM back on. Same idiom as .split-layout's calc heights. */
+   DOM (large row counts ≈ multi-second stalls, blocked main thread). A resolved
+   height turns the virtual DOM back on. Same idiom as .split-layout's calc heights. */
 #product-grid-wrap {
   height: calc(100vh - var(--pub-topbar-h) - 175px);
   min-height: 320px;
