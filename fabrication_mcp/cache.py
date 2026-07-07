@@ -38,7 +38,7 @@ class SearchIndex:
     candidate pi_ids via set intersection of token matches, then the
     caller does final filtering on the small candidate set.
 
-    Memory: ~15 MB for 164k products with ~200k unique tokens.
+    Memory: scales linearly, roughly 100 bytes per product row.
     Build time: <1 second (runs once at cache load).
     """
 

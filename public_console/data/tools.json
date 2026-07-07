@@ -4,7 +4,7 @@
  "tools": [
   {
    "name": "get_database_summary",
-   "description": "Returns a high-level summary of all available Fabrication database data:\nrecord counts, list of manufacturers, product groups, data sources,\nand data file timestamps. Always call this first in a new session to\nunderstand the scope of available data before querying.\n\nAlso includes a bridge_status field showing whether the live AutoCAD bridge\nis available and which database it's serving (database_name, database_path,\nprofile_name).\n\nKey count distinctions (N/A is NEVER a valid value \u2014 always treated as null/empty):\n- product_info_count: total raw rows in ProductInfo CSV (~236k)\n- listed_products_count: items where IsProductListed != \"N/A\" \u2014 these are\n  the \"real\" products visible in the Fabrication product editor (~164k)\n- products_with_cost: products with non-zero Cost value\n- products_with_labor: products with non-zero LaborRate or BpLaborValue\n- products_with_harrison: products with a real harrison_code (not N/A)\n- products_with_discount: products with a discount code string assigned\n- mapped_product_count: validated mapped subset (~7.4k)",
+   "description": "Returns a high-level summary of all available Fabrication database data:\nrecord counts, list of manufacturers, product groups, data sources,\nand data file timestamps. Always call this first in a new session to\nunderstand the scope of available data before querying.\n\nAlso includes a bridge_status field showing whether the live AutoCAD bridge\nis available and which database it's serving (database_name, database_path,\nprofile_name).\n\nKey count distinctions (N/A is NEVER a valid value \u2014 always treated as null/empty):\n- product_info_count: total raw rows in ProductInfo CSV\n- listed_products_count: items where IsProductListed != \"N/A\" \u2014 these are\n  the \"real\" products visible in the Fabrication product editor\n- products_with_cost: products with non-zero Cost value\n- products_with_labor: products with non-zero LaborRate or BpLaborValue\n- products_with_harrison: products with a real harrison_code (not N/A)\n- products_with_discount: products with a discount code string assigned\n- mapped_product_count: validated mapped subset",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {},
@@ -14,7 +14,7 @@
   },
   {
    "name": "search_products",
-   "description": "Search the Fabrication ProductInfo database (~236k raw rows; ~164k listed products)\nby free-text query matched against description, product name, size, specification,\nand harrison_code fields (case-insensitive).\n\nOptional filters:\n- manufacturer: e.g. 'Nibco', 'Anvil', 'Shaw', 'Victaulic', 'Weldbend'\n- material: e.g. 'Stainless Steel', 'Carbon Steel', 'Cast Iron', 'Copper'\n- product_group: e.g. 'Mechanical', 'Plumbing (DWV)', 'HVAC'\n- install_type: e.g. 'Welded', 'Threaded', 'Press', 'Grooved'\n- price_status: 'Active', 'PriceOnApplication', or 'Discontinued'\n- is_product_listed: True = has a product list entry, False = no product list\n\nReturns fields: pi_id, description, size, manufacturer, material, harrison_code,\ncost, price_units, price_status, labor_rate, labor_units, install_type, specification.",
+   "description": "Search the Fabrication ProductInfo database\nby free-text query matched against description, product name, size, specification,\nand harrison_code fields (case-insensitive).\n\nOptional filters:\n- manufacturer: e.g. 'Nibco', 'Anvil', 'Shaw', 'Victaulic', 'Weldbend'\n- material: e.g. 'Stainless Steel', 'Carbon Steel', 'Cast Iron', 'Copper'\n- product_group: e.g. 'Mechanical', 'Plumbing (DWV)', 'HVAC'\n- install_type: e.g. 'Welded', 'Threaded', 'Press', 'Grooved'\n- price_status: 'Active', 'PriceOnApplication', or 'Discontinued'\n- is_product_listed: True = has a product list entry, False = no product list\n\nReturns fields: pi_id, description, size, manufacturer, material, harrison_code,\ncost, price_units, price_status, labor_rate, labor_units, install_type, specification.",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -59,7 +59,7 @@
   },
   {
    "name": "get_product_by_id",
-   "description": "Retrieve a single Fabrication product by its pi_id, e.g. 'MDSK_ALL1_000007-0001'\nor 'ADSK_PIPE_000123-0002'.\nReturns all available fields including pricing, labor, supplier codes,\nand breakpoint labor data. Returns null if not found.",
+   "description": "Retrieve a single Fabrication product by its pi_id, e.g. 'MDSK_DEMO_000001-0001'\nor 'ADSK_DEMO_000002-0001'.\nReturns all available fields including pricing, labor, supplier codes,\nand breakpoint labor data. Returns null if not found.",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -93,7 +93,7 @@
   },
   {
    "name": "estimate_cost",
-   "description": "Estimate material and labor cost for a list of Fabrication product IDs using the\ncost and labor_rate fields in your own Fabrication database (ProductInfo).\n\nThis is the public foundation estimator: each item is priced straight from the\nFabrication database, with no external price catalog, no net-price lookup, and no\ndiscount multipliers. Configure price lists inside your Fabrication database to\ncontrol the cost values this reads.\n\n- product_ids: list of pi_id values (e.g. ['MDSK_ALL1_000007-0001', ...])\n- quantities: optional list of quantities (defaults to 1.0 each)\n\nReturns a line-by-line breakdown and total material + labor estimate.",
+   "description": "Estimate material and labor cost for a list of Fabrication product IDs using the\ncost and labor_rate fields in your own Fabrication database (ProductInfo).\n\nThis is the public foundation estimator: each item is priced straight from the\nFabrication database, with no external price catalog, no net-price lookup, and no\ndiscount multipliers. Configure price lists inside your Fabrication database to\ncontrol the cost values this reads.\n\n- product_ids: list of pi_id values (e.g. ['MDSK_DEMO_000001-0001', ...])\n- quantities: optional list of quantities (defaults to 1.0 each)\n\nReturns a line-by-line breakdown and total material + labor estimate.",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -176,7 +176,7 @@
   },
   {
    "name": "live_get_product",
-   "description": "Retrieve a single live Fabrication product by its database ID from AutoCAD.\nReturns full product definition including supplier IDs (Harrison code, Ferguson code, etc.).\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'",
+   "description": "Retrieve a single live Fabrication product by its database ID from AutoCAD.\nReturns full product definition including supplier IDs (Harrison code, Ferguson code, etc.).\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_DEMO_000001-0001', 'ADSK_DEMO_000002-0001'",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -289,7 +289,7 @@
   },
   {
    "name": "live_get_product_detail",
-   "description": "Retrieve full product detail with prices and install times from the live\nAutoCAD Fabrication database. Combines product definition, price list entries,\nand install time entries into a single response.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'",
+   "description": "Retrieve full product detail with prices and install times from the live\nAutoCAD Fabrication database. Combines product definition, price list entries,\nand install time entries into a single response.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.\n\nExample product IDs: 'MDSK_DEMO_000001-0001', 'ADSK_DEMO_000002-0001'",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -501,7 +501,7 @@
   },
   {
    "name": "live_swap_job_item",
-   "description": "Swap a placed job item to a different product in the active AutoCAD drawing.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\nWARNING: This modifies the active AutoCAD drawing. The item identified by\nunique_id will be replaced with the product specified by new_product_id.\nUse live_undo_swap to reverse the operation if needed.\n\nParameters:\n- unique_id: the item's uniqueId (from live_get_job_items results)\n- new_product_id: the database ID of the product to swap to\n  (e.g. 'MDSK_ALL1_000007-0001')\n- confirm: GUARDED mutation \u2014 must be true to execute. Ask the user first.\n- dry_run: preview the swap without executing it.",
+   "description": "Swap a placed job item to a different product in the active AutoCAD drawing.\n\nREQUIRES AutoCAD 2024 running with FabricationSample plugin loaded and a job open.\n\nWARNING: This modifies the active AutoCAD drawing. The item identified by\nunique_id will be replaced with the product specified by new_product_id.\nUse live_undo_swap to reverse the operation if needed.\n\nParameters:\n- unique_id: the item's uniqueId (from live_get_job_items results)\n- new_product_id: the database ID of the product to swap to\n  (e.g. 'MDSK_DEMO_000001-0001')\n- confirm: GUARDED mutation \u2014 must be true to execute. Ask the user first.\n- dry_run: preview the swap without executing it.",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
@@ -545,7 +545,7 @@
   },
   {
    "name": "get_estimate_items",
-   "description": "Query estimate data from a model's estimate.json sidecar file.\nReturns per-item cost/labor data keyed by IFC GlobalId \u2014 the same data\nthat feeds ESTmep cost estimation and Power BI reports.\n\nThis is job-level data: every placed item in a Fabrication job with its\nmaterial cost (M-Rate), fabrication time (FabTime/FabCost), installation\ntime (InstallTime/FieldCost), weight, length, area, volume, and service info.\n\nParameters:\n- model_id: hub model identifier (default: first model in active profile)\n- service: filter by Service name (partial match, case-insensitive)\n- section: filter by Section (partial match)\n- drawing: filter by Drawing (partial match)\n- material: filter by ProductMaterial (partial match)\n- dbid: filter by exact DatabaseId (pi_id), e.g. 'MDSK_ALL1_000007-0001'\n- global_id: return a single item by its IFC GlobalId\n- limit: max results (default 100, 0 = no limit)\n- offset: pagination offset\n\nKey fields returned: GlobalId, dbid, CID, Service, ServiceAbbr, Section,\nDrawing, Zone1, ProductDescription, ProductSize, ProductMaterial, Supplier,\nM_Rate, FabTime, FabCost, InstallTime, FieldCost, Weight, Length, Area, Qty.",
+   "description": "Query estimate data from a model's estimate.json sidecar file.\nReturns per-item cost/labor data keyed by IFC GlobalId \u2014 the same data\nthat feeds ESTmep cost estimation and Power BI reports.\n\nThis is job-level data: every placed item in a Fabrication job with its\nmaterial cost (M-Rate), fabrication time (FabTime/FabCost), installation\ntime (InstallTime/FieldCost), weight, length, area, volume, and service info.\n\nParameters:\n- model_id: hub model identifier (default: first model in active profile)\n- service: filter by Service name (partial match, case-insensitive)\n- section: filter by Section (partial match)\n- drawing: filter by Drawing (partial match)\n- material: filter by ProductMaterial (partial match)\n- dbid: filter by exact DatabaseId (pi_id), e.g. 'MDSK_DEMO_000001-0001'\n- global_id: return a single item by its IFC GlobalId\n- limit: max results (default 100, 0 = no limit)\n- offset: pagination offset\n\nKey fields returned: GlobalId, dbid, CID, Service, ServiceAbbr, Section,\nDrawing, Zone1, ProductDescription, ProductSize, ProductMaterial, Supplier,\nM_Rate, FabTime, FabCost, InstallTime, FieldCost, Weight, Length, Area, Qty.",
    "inputSchema": {
     "additionalProperties": false,
     "properties": {
