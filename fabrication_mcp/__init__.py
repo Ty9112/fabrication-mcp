@@ -15,9 +15,8 @@ mcp = FastMCP(
         "This server provides read-only access to Autodesk Fabrication CADmep "
         "database exports. "
         "Use get_database_summary first to understand what data is available. "
-        "ProductInfo contains ~236k raw rows; ~164k are 'real' products (IsProductListed != N/A). "
-        "75k+ items have harrison_code assigned in ProductInfo. "
-        "The mapped output (mapped_products, ~7.4k items) is the validated mapped subset. "
+        "Row counts and coverage vary by database - call get_database_summary for your own totals. "
+        "The mapped output (mapped_products) is the validated mapped subset. "
         "Cost values come straight from the ProductInfo price lists configured in your "
         "Fabrication database."
     ),

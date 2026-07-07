@@ -92,7 +92,7 @@ def live_get_product(product_id: str) -> dict:
 
     REQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.
 
-    Example product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'
+    Example product IDs: 'MDSK_DEMO_000001-0001', 'ADSK_DEMO_000002-0001'
     """
     result = _bridge_get(f"/api/products/{urllib.request.quote(product_id)}")
     if result is None:
@@ -229,7 +229,7 @@ def live_get_product_detail(product_id: str) -> dict:
 
     REQUIRES AutoCAD 2024 running with FabricationSample plugin loaded.
 
-    Example product IDs: 'MDSK_ALL1_000007-0001', 'ADSK_PIPE_000123-0002'
+    Example product IDs: 'MDSK_DEMO_000001-0001', 'ADSK_DEMO_000002-0001'
     """
     encoded_id = urllib.request.quote(product_id)
 
@@ -542,7 +542,7 @@ def live_swap_job_item(unique_id: str, new_product_id: str,
     Parameters:
     - unique_id: the item's uniqueId (from live_get_job_items results)
     - new_product_id: the database ID of the product to swap to
-      (e.g. 'MDSK_ALL1_000007-0001')
+      (e.g. 'MDSK_DEMO_000001-0001')
     - confirm: GUARDED mutation — must be true to execute. Ask the user first.
     - dry_run: preview the swap without executing it.
     """

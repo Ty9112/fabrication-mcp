@@ -15,7 +15,7 @@ pipeline — plus a static browser console with a searchable MCP Tools Explorer.
 
 ## Data Sources
 
-Product data is sourced from Fabrication CADmep's `ProductInfo_*.csv` exports (~164k real products
+Product data is sourced from Fabrication CADmep's `ProductInfo_*.csv` exports (real products
 after filtering N/A placeholder rows). Paths are configurable via environment variables:
 - `FABRICATION_DATA_ROOT` — root for CSV exports
 - `FABRICATION_EXPORTS_DIR` — directory scanned by `est_list_exports` for estimate files

@@ -72,7 +72,7 @@ def get_estimate_items(
     - section: filter by Section (partial match)
     - drawing: filter by Drawing (partial match)
     - material: filter by ProductMaterial (partial match)
-    - dbid: filter by exact DatabaseId (pi_id), e.g. 'MDSK_ALL1_000007-0001'
+    - dbid: filter by exact DatabaseId (pi_id), e.g. 'MDSK_DEMO_000001-0001'
     - global_id: return a single item by its IFC GlobalId
     - limit: max results (default 100, 0 = no limit)
     - offset: pagination offset

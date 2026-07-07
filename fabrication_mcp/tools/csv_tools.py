@@ -38,14 +38,14 @@ def get_database_summary() -> dict:
     profile_name).
 
     Key count distinctions (N/A is NEVER a valid value — always treated as null/empty):
-    - product_info_count: total raw rows in ProductInfo CSV (~236k)
+    - product_info_count: total raw rows in ProductInfo CSV
     - listed_products_count: items where IsProductListed != "N/A" — these are
-      the "real" products visible in the Fabrication product editor (~164k)
+      the "real" products visible in the Fabrication product editor
     - products_with_cost: products with non-zero Cost value
     - products_with_labor: products with non-zero LaborRate or BpLaborValue
     - products_with_harrison: products with a real harrison_code (not N/A)
     - products_with_discount: products with a discount code string assigned
-    - mapped_product_count: validated mapped subset (~7.4k)
+    - mapped_product_count: validated mapped subset
     """
     _check_bridge_sync()  # auto-detect profile switch
     p = _products()
@@ -132,7 +132,7 @@ def search_products(
     limit: int = 25,
 ) -> list[dict]:
     """
-    Search the Fabrication ProductInfo database (~236k raw rows; ~164k listed products)
+    Search the Fabrication ProductInfo database
     by free-text query matched against description, product name, size, specification,
     and harrison_code fields (case-insensitive).
 
@@ -224,8 +224,8 @@ def search_products(
 @mcp.tool()
 def get_product_by_id(product_id: str) -> Optional[dict]:
     """
-    Retrieve a single Fabrication product by its pi_id, e.g. 'MDSK_ALL1_000007-0001'
-    or 'ADSK_PIPE_000123-0002'.
+    Retrieve a single Fabrication product by its pi_id, e.g. 'MDSK_DEMO_000001-0001'
+    or 'ADSK_DEMO_000002-0001'.
     Returns all available fields including pricing, labor, supplier codes,
     and breakpoint labor data. Returns null if not found.
     """
@@ -264,7 +264,7 @@ def estimate_cost(
     discount multipliers. Configure price lists inside your Fabrication database to
     control the cost values this reads.
 
-    - product_ids: list of pi_id values (e.g. ['MDSK_ALL1_000007-0001', ...])
+    - product_ids: list of pi_id values (e.g. ['MDSK_DEMO_000001-0001', ...])
     - quantities: optional list of quantities (defaults to 1.0 each)
 
     Returns a line-by-line breakdown and total material + labor estimate.
